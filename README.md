@@ -109,7 +109,7 @@ If needed, manually add the lib folder to sys.path:
 import sys
 sys.path.append('/lib')
 from umqtt import simple
-
+```
 You can also import specific functions directly:
 
   ```python
