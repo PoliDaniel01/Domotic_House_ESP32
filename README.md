@@ -116,20 +116,21 @@ You can also import specific functions directly:
 from umqtt.simple import connect_mqtt
 ```
 ## 🚀 How to Use
-
+  ```python
 Upload all files to the ESP32 using tools like ampy, mpremote, PyMakr, or Thonny.
 Make sure the folder structure is correctly replicated on the device.
 Edit master.py to include your application logic.
 Reset the ESP32 to auto-run your main script.
-
-##✅ **Best Practices**
-
+```
+✅ **Best Practices**
+ ```python
 Keep all libraries inside the /lib/ directory.
 Include an __init__.py file (even if empty) in library folders to ensure compatibility.
 Test imports on your ESP32 to confirm your MicroPython firmware supports nested packages.
-
+```
 ##🛠️ **Requirements**
-
+ ```python
 ESP32 board flashed with MicroPython.
 Recommended IDE: VSCode with PyMakr extension, or Thonny.
 USB drivers for your ESP32 board installed on your computer.
+```
