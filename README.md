@@ -2,56 +2,68 @@
 
 This project runs on an **ESP32 using MicroPython**, with a clean folder structure to manage custom and external libraries easily.
 
-## 🗂️ Project Structure
+## Project Tree
 
+```
 domotica_esp32/
 │
-├── master/                          # Cartella principale del master
-│   ├── master.py                    # Main Code
-│   ├── config.py                    # WiFi/MQTT Configuration (missing)
+├── README.md                      # Main guide
+│
+├── docs/                          # Documentation
+│   ├── manuals/                   # Manuals
+│   │   └── temp/
+│   ├── project_docs/
+│   │   └── temp/
+│   └── wiring_diagrams/           # Fritzing diagrams
+│       ├── master_v1.0.fzz
+│       ├── lights_v1.0.png
+│       └── climate_v1.0.pdf
+│
+├── master/                        # Master device
+│   ├── master.py                  # Main code
+│   ├── config.py                  # WiFi/MQTT configuration
 │   └── lib/
-│       ├── st7789/                  # display library
-│       │   ├── __init__.py          # init (missing)
-│       │   ├── st7789.py            # Main Driver (missing)
-│       │   └── fonts/               # Fonts (missing)
-│       └── umqtt/
-│           ├── simple.py            # Client MQTT base
-│           └── robust.py            # Client MQTT advanced
-├── slaves/
+│       ├── st7789/                # Display driver
+│       │   ├── __init__.py
+│       │   └── st7789.py
+│       └── umqtt/                 # MQTT clients
+│           ├── simple.py
+│           └── robust.py
+│
+├── slaves/                        # Slaves
 │   ├── lights/
-│   │   ├── slave_light.py           # Light Code
+│   │   ├── slave_lights.py        # Lights slave code
 │   │   └── lib/
 │   │       └── umqtt/
-│   │           ├── simple.py        # Client MQTT base
-│   │           └── robust.py        # Client MQTT advanced
+│   │           ├── simple.py
+│   │           └── robust.py
+│   │
 │   ├── shutters/
-│   │   ├── main.py                  # Codice tapparelle
+│   │   ├── slave_shutters.py      # Shutters slave code
 │   │   └── lib/
 │   │       └── umqtt/
+│   │           ├── simple.py
+│   │           └── robust.py
 │   │
 │   └── climate/
-│       ├── main.py                  # Codice clima
+│       ├── slave_climate.py       # Climate slave code
 │       └── lib/
-│           ├── bme680/              # Libreria sensore
+│           ├── bme680/            # Sensor library
 │           │   ├── __init__.py
+│           │   ├── constants.py
 │           │   └── bme680.py
 │           └── umqtt/
+│               ├── simple.py
+│               └── robust.py
 │
-├── docs/
-│   ├── wiring_diagrams/             # Schemi Fritzing
-│   │   ├── master_v1.0.fzz
-│   │   ├── lights_v1.0.png
-│   │   └── climate_v1.0.pdf
-│   │
-│   └── manuals/                     # Manuali
-│       ├── MQTT_setup.md
-│       └── ESP32_flashing_guide.pdf
-│
-├── utils/
-│   ├── mqtt_test.py                 # Script di test
-│   └── wifi_config_tool.py          # Configurazione WiFi
-│
-└── README.md                        # Guida principale
+└── utils/                         # Tools
+    ├── mqtt_test.py               # MQTT testing script
+    └── wifi_config_tool.py        # WiFi configuration tool
+```
+
+
+
+
 - `main.py`: the main script executed at boot.
 - `lib/`: folder for custom or third-party libraries.
 - `umqtt/`: folder containing the MQTT client module.
