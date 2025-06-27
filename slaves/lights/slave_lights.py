@@ -2,7 +2,7 @@
 from machine import Pin
 import network
 import time
-from umqtt.simple import MQTTClient
+from lib.umqtt import simple
 
 # === CONFIGURATION ===
 WIFI_SSID = "YOUR_WIFI_SSID"        # <-- Change
