@@ -2,7 +2,7 @@
 from machine import Pin, SoftI2C
 import network
 import time
-from lib.umqtt import simple, robust
+from umqtt.simple import MQTTClient
 from lib.bme680 import constants    # BME680 library
 
 # === CONFIGURATION ===
