@@ -4,14 +4,54 @@ This project runs on an **ESP32 using MicroPython**, with a clean folder structu
 
 ## 🗂️ Project Structure
 
-project/
+domotica_esp32/
 │
-├── main.py
-└── lib/
-└── umqtt/
-├── init.py
-└── simple.py
-
+├── master/                          # Cartella principale del master
+│   ├── master.py                    # Main Code
+│   ├── config.py                    # WiFi/MQTT Configuration (missing)
+│   └── lib/
+│       ├── st7789/                  # display library
+│       │   ├── __init__.py          # init (missing)
+│       │   ├── st7789.py            # Main Driver (missing)
+│       │   └── fonts/               # Fonts (missing)
+│       └── umqtt/
+│           ├── simple.py            # Client MQTT base
+│           └── robust.py            # Client MQTT advanced
+├── slaves/
+│   ├── lights/
+│   │   ├── slave_light.py           # Light Code
+│   │   └── lib/
+│   │       └── umqtt/
+│   │           ├── simple.py        # Client MQTT base
+│   │           └── robust.py        # Client MQTT advanced
+│   ├── shutters/
+│   │   ├── main.py                  # Codice tapparelle
+│   │   └── lib/
+│   │       └── umqtt/
+│   │
+│   └── climate/
+│       ├── main.py                  # Codice clima
+│       └── lib/
+│           ├── bme680/              # Libreria sensore
+│           │   ├── __init__.py
+│           │   └── bme680.py
+│           └── umqtt/
+│
+├── docs/
+│   ├── wiring_diagrams/             # Schemi Fritzing
+│   │   ├── master_v1.0.fzz
+│   │   ├── lights_v1.0.png
+│   │   └── climate_v1.0.pdf
+│   │
+│   └── manuals/                     # Manuali
+│       ├── MQTT_setup.md
+│       └── ESP32_flashing_guide.pdf
+│
+├── utils/
+│   ├── mqtt_test.py                 # Script di test
+│   └── wifi_config_tool.py          # Configurazione WiFi
+│
+└── README.md                        # Guida principale
 - `main.py`: the main script executed at boot.
 - `lib/`: folder for custom or third-party libraries.
 - `umqtt/`: folder containing the MQTT client module.
@@ -39,7 +79,7 @@ You can also import specific functions directly:
   ```python
 from umqtt.simple import connect_mqtt
 
-##🚀 **How to Use**
+##🚀 ## 🗂️ Project Structure
 
 Upload all files to the ESP32 using tools like ampy, mpremote, PyMakr, or Thonny.
 Make sure the folder structure is correctly replicated on the device.
