@@ -3,8 +3,8 @@ from machine import Pin, SoftI2C
 import network
 import time
 import json
-from umqtt.simple import MQTTClient
-from lib.st7789 import ST7789  # ST7789 display library
+from lib.umqtt import simple.py
+from lib.st7789 import    #put there the missing library
 
 # === CONFIGURATION ===
 WIFI_SSID = "YOUR_WIFI_SSID"        # <-- Change
