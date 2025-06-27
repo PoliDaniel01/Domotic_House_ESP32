@@ -2,7 +2,7 @@
 
 This project runs on an **ESP32 using MicroPython**, with a clean folder structure to manage custom and external libraries easily.
 ## 🛠️ **Requirements**
- ```python
+ ```
 4 ESP32 board flashed with MicroPython.
 Recommended IDE: VSCode with PyMakr extension, or Thonny.
 USB drivers for your ESP32 board installed on your computer.
