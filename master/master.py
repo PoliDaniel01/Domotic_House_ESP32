@@ -3,7 +3,7 @@ from machine import Pin, SoftI2C
 import network
 import time
 import json
-from lib.umqtt import simple
+from lib.umqtt import simple, robust
 from lib.st7789 import    #put there the missing library
 
 # === CONFIGURATION ===
