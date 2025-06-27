@@ -2,8 +2,8 @@
 from machine import Pin, SoftI2C
 import network
 import time
-from umqtt.simple import MQTTClient
-from lib.bme680 import BME680  # BME680 library
+from lib.umqtt import simple            
+from lib.bme680 import constants    # BME680 library
 
 # === CONFIGURATION ===
 WIFI_SSID = "YOUR_WIFI_SSID"        # <-- Change
