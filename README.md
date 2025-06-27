@@ -1,6 +1,12 @@
 # domotic_esp32
 
 This project runs on an **ESP32 using MicroPython**, with a clean folder structure to manage custom and external libraries easily.
+## 🛠️ **Requirements**
+ ```python
+ESP32 board flashed with MicroPython.
+Recommended IDE: VSCode with PyMakr extension, or Thonny.
+USB drivers for your ESP32 board installed on your computer.
+```
 
 ## 🗂️ Project Structure
 
@@ -122,15 +128,9 @@ Make sure the folder structure is correctly replicated on the device.
 Edit master.py to include your application logic.
 Reset the ESP32 to auto-run your main script.
 ```
-✅ **Best Practices**
+## ✅ **Best Practices**
  ```python
 Keep all libraries inside the /lib/ directory.
 Include an __init__.py file (even if empty) in library folders to ensure compatibility.
 Test imports on your ESP32 to confirm your MicroPython firmware supports nested packages.
-```
-##🛠️ **Requirements**
- ```python
-ESP32 board flashed with MicroPython.
-Recommended IDE: VSCode with PyMakr extension, or Thonny.
-USB drivers for your ESP32 board installed on your computer.
 ```
