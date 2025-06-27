@@ -88,10 +88,6 @@ domotica_esp32/
 │
 └── README.md                          # Main guide
 ```
-
-
-
-
 - `master.py`: the main script executed at boot.
 - `lib/`: folder for custom or third-party libraries.
 - `umqtt/`: folder containing the MQTT client module.
@@ -105,7 +101,7 @@ In MicroPython:
 - You can use dot notation for imports:
   ```python
   from umqtt.simple import MQTTClient
-
+  ```
 If needed, manually add the lib folder to sys.path:
 
   ```python
