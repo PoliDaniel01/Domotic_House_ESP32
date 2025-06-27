@@ -7,58 +7,89 @@ This project runs on an **ESP32 using MicroPython**, with a clean folder structu
 ```
 domotica_esp32/
 │
-├── README.md                      # Main guide
-│
-├── docs/                          # Documentation
-│   ├── manuals/                   # Manuals
-│   │   └── temp/
+├── docs/                              # Documentation
+│   ├── manuals/                       # Manuals
+│   │   ├── temp                       # Delete that when other files are added
+│   │   ├── MQTT_setup.md              # Missing file
+│   │   └── ESP32_flashing_guide.pdf   # Missing file
+│   │
 │   ├── project_docs/
-│   │   └── temp/
-│   └── wiring_diagrams/           # Fritzing diagrams
-│       ├── master_v1.0.fzz
-│       ├── lights_v1.0.png
-│       └── climate_v1.0.pdf
+│   │    ├── temp                       # Delete that when other files are added
+│   │    ├── api_reference.md           # MQTT API Documentation
+│   │    ├── pinout_cheatsheet.png      # ESP32 Pinout Infographic
+│   │    ├── protocol_guide.md          # Communication Specifications
+│   │    └── troubleshooting.md         # Common Issues & Solutions
+│   │
+│   └── wiring_diagrams/               # Fritzing diagrams
+│       ├── design_files/              # Editable source files
+│       │   ├── temp                   # Delete that when other files are added
+│       │   ├── master_esp32.fzz       # Fritzing master diagram
+│       │   ├── full_system.drawio     # Complete system architecture
+│       │   └── power_supply.kicad     # PCB power design (KiCAD)
+│       │
+│       ├── exports/                   # Ready-to-use references
+│       │   ├── temp                   # Delete that when other files are added
+│       │   ├── master_esp32.png
+│       │   ├── esp32_pinout.pdf       # GPIO cheat sheet
+│       │   └── power_supply.pdf       # Power circuit diagram
+│       │
+│       ├── photos/                    # Real-world references
+│       │   ├── temp                   # Delete that when other files are added
+│       │   ├── master_front.jpg
+│       │   └── relay_wiring.jpg       # Close-up of critical connections
+│       │
+│       └── checklists/                # Validation tools
+│           ├── temp                   # Delete that when other files are added
+│           ├── wiring_checklist.md
+│           └── safety_checks.md
+│ 
+├── master/                            # Master device
+│   ├── master.py                      # Main code
+│   ├── config.py                      # WiFi/MQTT configuration (MISSING!)
+│   └── lib/    
+│       ├── st7789/                    # Display driver
+│       │   ├── temp                   # Delete that when other files are added
+│       │   ├── __init__.py            # MISSING!
+│       │   └── st7789.py              # MISSING!
+│       │
+│       └── umqtt/                     # MQTT clients
+│           ├── simple.py              # Usually always use that
+│           └── robust.py              # Use that for long-lasting connections on unreliable networks, with automatic reconnection and minimal extra coding.
 │
-├── master/                        # Master device
-│   ├── master.py                  # Main code
-│   ├── config.py                  # WiFi/MQTT configuration
-│   └── lib/
-│       ├── st7789/                # Display driver
-│       │   ├── __init__.py
-│       │   └── st7789.py
-│       └── umqtt/                 # MQTT clients
-│           ├── simple.py
-│           └── robust.py
-│
-├── slaves/                        # Slaves
+├── slaves/                            # Slaves
+│   ├── climate/
+│   │   ├── slave_climate.py           # Climate slave code
+│   │   └── lib/
+│   │       ├── bme680/                # Sensor library
+│   │       │   ├── __init__.py
+│   │       │   └── constants.py
+│   │       │   
+│   │       └── umqtt/                 # MQTT clients
+│   │           ├── simple.py          # Usually always use that
+│   │           └── robust.py          # Use that for long-lasting connections on unreliable networks, with automatic reconnection and minimal extra coding.
+│   │
 │   ├── lights/
-│   │   ├── slave_lights.py        # Lights slave code
+│   │   ├── slave_lights.py            # Lights slave code
 │   │   └── lib/
-│   │       └── umqtt/
-│   │           ├── simple.py
-│   │           └── robust.py
+│   │       └── umqtt/                 # MQTT clients
+│   │           ├── simple.py          # Usually always use that
+│   │           └── robust.py          # Use that for long-lasting connections on unreliable networks, with automatic reconnection and minimal extra coding.
 │   │
-│   ├── shutters/
-│   │   ├── slave_shutters.py      # Shutters slave code
-│   │   └── lib/
-│   │       └── umqtt/
-│   │           ├── simple.py
-│   │           └── robust.py
-│   │
-│   └── climate/
-│       ├── slave_climate.py       # Climate slave code
+│   └── shutters/
+│       ├── slave_shutters.py          # Shutters slave code
 │       └── lib/
-│           ├── bme680/            # Sensor library
-│           │   ├── __init__.py
-│           │   ├── constants.py
-│           │   └── bme680.py
-│           └── umqtt/
-│               ├── simple.py
-│               └── robust.py
+│           └── umqtt/                 # MQTT clients
+│               ├── simple.py          # Usually always use that
+│               └── robust.py          # Use that for long-lasting connections on unreliable networks, with automatic reconnection and minimal extra coding.
 │
-└── utils/                         # Tools
-    ├── mqtt_test.py               # MQTT testing script
-    └── wifi_config_tool.py        # WiFi configuration tool
+├── utils/                             # Tools
+│   ├── mqtt_test.py                   # MQTT testing script
+│   └── wifi_config_tool.py            # WiFi configuration tool
+│
+└── README.md                          # Main guide
+
+
+
 ```
 
 
