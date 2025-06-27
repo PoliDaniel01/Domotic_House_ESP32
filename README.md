@@ -87,15 +87,12 @@ domotica_esp32/
 │   └── wifi_config_tool.py            # WiFi configuration tool
 │
 └── README.md                          # Main guide
-
-
-
 ```
 
 
 
 
-- `main.py`: the main script executed at boot.
+- `master.py`: the main script executed at boot.
 - `lib/`: folder for custom or third-party libraries.
 - `umqtt/`: folder containing the MQTT client module.
 - `simple.py`: contains functions to handle MQTT operations.
