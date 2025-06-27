@@ -2,7 +2,7 @@
 
 This project runs on an **ESP32 using MicroPython**, with a clean folder structure to manage custom and external libraries easily.
 
-## Project Tree
+## 🗂️ Project Structure
 
 ```
 domotica_esp32/
