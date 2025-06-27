@@ -115,7 +115,7 @@ You can also import specific functions directly:
   ```python
 from umqtt.simple import connect_mqtt
 ```
-##🚀 How to Use
+## 🚀 How to Use
 
 Upload all files to the ESP32 using tools like ampy, mpremote, PyMakr, or Thonny.
 Make sure the folder structure is correctly replicated on the device.
