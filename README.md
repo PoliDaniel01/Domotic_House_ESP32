@@ -1,9 +1,11 @@
 # domotic_esp32
 
 This project runs on an **ESP32 using MicroPython**, with a clean folder structure to manage custom and external libraries easily.
+
 ## 🛠️ **Requirements**
- ```
+```
 4 ESP32 board flashed with MicroPython.
+Python 3.10+ to interact with your boards using esptool
 Recommended IDE: VSCode with PyMakr extension, or Thonny.
 USB drivers for your ESP32 board installed on your computer.
 ```
@@ -99,6 +101,24 @@ domotica_esp32/
 - `umqtt/`: folder containing the MQTT client module.
 - `simple.py`: contains functions to handle MQTT operations.
 - `__init__.py`: allows MicroPython to treat the folder as a package (can be empty).
+
+## Instructions
+Before uploading files to the esp32 boards, ensure the rigth version of micropython is flashed on them. To do so you can wire them to your computer and, using command prompt or bash:
+1. Create a python environment:
+```
+python -m venv esp32_smart_home
+esp32_smart_home\Scripts\activate
+```
+2. Download esptool, which is usefull to interact with micropython for both flashing firmware and testing tasks:
+```
+pip install esptool
+```
+3. Erasing and flashing firmware
+```
+esptool erase_flash
+esptool --baud 460800 write_flash 0x1000 micropython_utils/NAME_OF_MICROPYTHON_BINARY
+```
+where NAME_OF_MICROPYTHON_BINARY depends on your particoular device model
 
 ## ⚙️ Imports
 
