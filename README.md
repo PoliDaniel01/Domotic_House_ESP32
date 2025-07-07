@@ -124,7 +124,7 @@ where NAME_OF_MICROPYTHON_BINARY depends on your particoular device model
 
 In MicroPython:
 
-- You can use dot notation for imports:
+You can use dot notation for imports:
   ```python
   from umqtt.simple import MQTTClient
   ```

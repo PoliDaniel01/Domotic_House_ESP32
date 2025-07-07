@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ESP32 Home Control</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+        h1 {
+            color: #1a73e8;
+            text-align: center;
+        }
+        h2 {
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        .sensor-data p, .control-section p {
+            font-size: 1.1em;
+            margin: 10px 0;
+        }
+        .control-section .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        a.button {
+            flex-grow: 1;
+            text-align: center;
+            padding: 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            color: white;
+            transition: background-color 0.3s;
+        }
+        .on { background-color: #4CAF50; }
+        .on:hover { background-color: #45a049; }
+        .off { background-color: #f44336; }
+        .off:hover { background-color: #da190b; }
+        .input-group {
+            display: flex;
+            align-items: center;
+            margin-top: 15px;
+        }
+        .input-group input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px 0 0 8px;
+            font-size: 1em;
+        }
+        .input-group button {
+            padding: 10px 15px;
+            border: none;
+            background-color: #1a73e8;
+            color: white;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        .input-group button:hover {
+            background-color: #1558b3;
+        }
+        strong {
+             color: #1a73e8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>My Smart Home</h1>
+
+    <div class="card">
+        <h2>Temperature & Humidity</h2>
+        <div class="sensor-data">
+            <p>Temperature: <strong>{{ clima["TEMP"] }} &deg;C</strong></p>
+            <p>Humidity: <strong>{{ clima["HUMIDITY"] }} %</strong></p>
+        </div>
+        <div class="control-section">
+            <p>Current Desired Temperature: <strong>{{ clima["DES_TEMP"] }} &deg;C</strong></p>
+            <p>Set Desired Temperature:</p>
+            <div class="input-group">
+                <input type="number" id="desiredTemp" name="desiredTemp" placeholder="e.g., 22.5, range: 4 - 32" step="0.5" min=4.0 max=32.0>
+                <button onclick="setTemperature()">Set</button>
+            </div>
+        </div>
+    </div>
+
+
+    {% for light_id, state in lights.items() %}
+    <div class="card">
+        <h2>Light: {{ light_id }}</h2>
+        <div class="control-section">
+            <p>State: <strong>{{ state }}</strong></p>
+            <div class="buttons">
+                <button class="button on" onclick="updateLight('{{ light_id }}', 'ON')">Turn On</button>
+                <button class="button off" onclick="updateLight('{{ light_id }}', 'OFF')">Turn Off</button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+    <script>
+        const API_KEY = '{{ api_key }}';
+
+        async function updateLight(ligthId, state) {
+            await fetch(`/update?id=${ligthId}&state=${state}`, {
+                method: 'GET',
+                headers: { 'X-API-Key': API_KEY }
+            });
+            document.getElementById(`state-${ligthId}`).innerText = state;
+        }
+
+        async function setTemperature() {
+            const temp = document.getElementById('desiredTemp').value;
+            if(!temp) {
+                alert("Please enter a temperature");
+                return;
+            }
+            await fetch(`/update?id=DES_TEMP&state=${temp}`, {
+                method: 'GET',
+                headers: { 'X-API-Key' : API_KEY }
+            });
+            setTimeout(() => { window.location.reload(); }, 300);
+        }
+
+        setTimeout(function(){
+            window.location.reload(1);
+        }, 5000);
+    </script>
+</body>
+</html>
