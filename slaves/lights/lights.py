@@ -6,18 +6,15 @@ from umqtt.simple import MQTTClient
 # ===========================
 # CONFIGURAZIONE
 # ===========================
-WIFI_SSID = "-----"
-WIFI_PASS = "-----"
-MQTT_BROKER = "-----"
+WIFI_SSID = ""
+WIFI_PASS = ""
+MQTT_BROKER = ""
 
-TOPIC_SOGGIORNO = b"home/led/soggiorno"
-TOPIC_CUCINA    = b"home/led/cucina"
-TOPIC_CAMERA    = b"home/led/camera"
-
+# Topic di comando
 TOPICS = {
-    TOPIC_SOGGIORNO: "soggiorno",
-    TOPIC_CUCINA:    "cucina",
-    TOPIC_CAMERA:    "camera",
+    b"home/led/soggiorno/command": "soggiorno",
+    b"home/led/cucina/command": "cucina",
+    b"home/led/camera/command": "camera",
 }
 
 # ===========================
@@ -66,7 +63,7 @@ client = None
 # ===========================
 def publish_state(name):
     if client:
-        topic = f"home/led/{name}".encode()
+        topic = f"home/led/{name}/state".encode()
         msg = b"ON" if led_states[name] else b"OFF"
         try:
             client.publish(topic, msg, retain=True)
@@ -159,7 +156,7 @@ def main():
                     led_states[name] = not led_states[name]
                     led_pins[name].value(1 if led_states[name] else 0)
 
-                    # Pubblica su MQTT
+                    # Pubblica lo stato reale su /state
                     publish_state(name)
                     print(f"→ {name.upper()} {'accesa' if led_states[name] else 'spenta'}")
 
