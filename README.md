@@ -16,7 +16,13 @@
 
 # Domoti House with ESP32 master-slave
 
-This project runs on an **ESP32 using MicroPython**, with a clean folder structure to manage custom and external libraries easily.
+This
+
+This project implements a **smart home automation system** using a network of ESP32 microcontrollers.
+The system follows a **master-slave architecture**:
+- **Master ESP32:** Central hub coordinating communication and control logic (e.g., sensors, user inputs).
+- **Slave ESP32s:** Nodes handling localized tasks (e.g., room-specific lighting, temperature monitoring).
+- **Stack:** Firmware is written in **MicroPython** for rapid development and IoT-focused functionality.
 
 ## 🛠️ **Requirements**
 ```
