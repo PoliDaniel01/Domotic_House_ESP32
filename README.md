@@ -3,13 +3,13 @@
 
  1. [About the project](#-domotic-house-with-esp32-master---slave)  
 
- 2. [Requirements](#-requirements)
+ 2. [Requirements](#️-requirements)
   
- 3. [Project Structure](#-project-structure)
+ 3. [Project Structure](#️-project-structure)
   
  4. [Project Explanation](#-project-explanation)
   
- 5. [How to Start](#-how-to-start
+ 5. [How to Start](#-how-to-start)
   
  6.  [ Video and Presentation](#-video-and-presentation)
 
