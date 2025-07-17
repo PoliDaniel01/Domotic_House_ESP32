@@ -1,11 +1,13 @@
 <details>
-<summary>📚 <b>Table of Contents</b> (click per espandere)</summary>
+<summary>📚 <b>Table of Contents</b></summary>
 - [Requirements](#Requirements)
 - [Project Structure](#project-structure)
 - [Instructions](#Instructions)
 - [Imports](#Imports)
 - [How to Use](#how-to-use)
 </details>
+
+
 # domotic_esp32
 
 This project runs on an **ESP32 using MicroPython**, with a clean folder structure to manage custom and external libraries easily.
@@ -18,7 +20,7 @@ Recommended IDE: VSCode with PyMakr extension, or Thonny.
 USB drivers for your ESP32 board installed on your computer.
 ```
 
-## 🗂️ Project Structure
+## 🗂️ Project-Structure
 
 ```
 domotica_esp32/
