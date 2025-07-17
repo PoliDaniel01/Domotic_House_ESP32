@@ -34,10 +34,6 @@ The system follows a **master-slave architecture**:
 
 # 🖥️ **Hardware Requirements**
 
-4 ESP32 board flashed with MicroPython.
-Python 3.10+ to interact with your boards using esptool
-Recommended IDE: VSCode with PyMakr extension, or Thonny.
-USB drivers for your ESP32 board installed on your computer.
 
 ## 🔧 **Setting up the hardware**
 
@@ -104,19 +100,8 @@ domotica_esp32/
 
 # 🚀 **How to Start**
 
-Upload all files to the ESP32 using tools like ampy, mpremote, PyMakr, or Thonny.
-Make sure the folder structure is correctly replicated on the device.
-Edit master.py to include your application logic.
-Reset the ESP32 to auto-run your main script.
 
 # 📹 **Video and Presentation**
 
 # 🌐 **Contacts**
 
-Keep all libraries inside the /lib/ directory.
-Include an __init__.py file (even if empty) in library folders to ensure compatibility.
-Test imports on your ESP32 to confirm your MicroPython firmware supports nested packages.
-
-
-
-[def]: #contacts
