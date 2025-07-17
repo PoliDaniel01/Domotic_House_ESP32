@@ -13,7 +13,7 @@
   
  6.  [ Video and Presentation](#video-and-presentation)
 
- 7.  [Contacts](#contacts)
+ 7.  [Contacts](#-contacts)
   
 </details>
 
@@ -117,3 +117,6 @@ Keep all libraries inside the /lib/ directory.
 Include an __init__.py file (even if empty) in library folders to ensure compatibility.
 Test imports on your ESP32 to confirm your MicroPython firmware supports nested packages.
 
+
+
+[def]: #contacts
