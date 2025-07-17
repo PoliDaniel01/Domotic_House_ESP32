@@ -14,7 +14,7 @@
 </details>
 
 
-# Domoti House with ESP32 master-slave
+## Domoti House with ESP32 master-slave
 
 This
 
@@ -26,6 +26,7 @@ The system follows a **master-slave architecture**:
 
 ## 🛠️ **Requirements**
 ```
+T
 4 ESP32 board flashed with MicroPython.
 Python 3.10+ to interact with your boards using esptool
 Recommended IDE: VSCode with PyMakr extension, or Thonny.
