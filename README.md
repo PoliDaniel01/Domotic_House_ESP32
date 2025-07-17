@@ -39,7 +39,7 @@ USB drivers for your ESP32 board installed on your computer.
 
 ## 🔧 **Setting up the hardware**
 
-## 🗂️ Project Structure
+## 🗂️ **Project Structure**
 
 ```
 domotica_esp32/
@@ -96,53 +96,20 @@ domotica_esp32/
 │       └── wifi_config_tool.py                  # WiFi configuration tool
 │   
 └── README.md                                    # Main 
+```
 
-## **Instructions**
-Before uploading files to the esp32 boards, ensure the rigth version of micropython is flashed on them. To do so you can wire them to your computer and, using command prompt or bash:
-1. Create a python environment:
+## 🔍 **Project Explanation**
 
-python -m venv esp32_smart_home
-esp32_smart_home\Scripts\activate
-
-2. Download esptool, which is usefull to interact with micropython for both flashing firmware and testing tasks:
-
-pip install esptool
-
-3. Erasing and flashing firmware
-
-esptool erase_flash
-esptool --baud 460800 write_flash 0x1000 micropython_utils/NAME_OF_MICROPYTHON_BINARY
-
-where NAME_OF_MICROPYTHON_BINARY depends on your particoular device model
-
-## ⚙️ Imports
-
-In MicroPython:
-
-You can use dot notation for imports:
-  from umqtt.simple import MQTTClient
-
-If needed, manually add the lib folder to sys.path:
-
-
-
-import sys
-sys.path.append('/lib')
-from umqtt import simple
-
-You can also import specific functions directly:
-
-
-from umqtt.simple import connect_mqtt
-
-## 🚀 How to Use
+## 🚀 **How to Start**
 
 Upload all files to the ESP32 using tools like ampy, mpremote, PyMakr, or Thonny.
 Make sure the folder structure is correctly replicated on the device.
 Edit master.py to include your application logic.
 Reset the ESP32 to auto-run your main script.
 
-## ✅ **Best Practices**
+## 📹 **Video and Presentation**
+
+## 🌐 **Contacts**
 
 Keep all libraries inside the /lib/ directory.
 Include an __init__.py file (even if empty) in library folders to ensure compatibility.
