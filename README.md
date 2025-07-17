@@ -1,9 +1,9 @@
 ## Table of Contents
 - [Requirements](#Requirements)
-- [Project Structure](#Project-Structure)
+- [Project Structure](#project-structure)
 - [Instructions](#Instructions)
 - [Imports](#Imports)
-- [How to Use](#How-to-Use)
+- [How to Use](#how-to-use)
 
 # domotic_esp32
 
