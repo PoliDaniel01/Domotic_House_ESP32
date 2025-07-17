@@ -35,7 +35,7 @@ The system follows a **master-slave architecture**:
 ## 🖥️ **Hardware Requirements**
 
 
-### 🔧 **Setting up the hardware**
+## 🔧 **Setting up the hardware**
 
 # 🗂️ **Project Structure**
 
