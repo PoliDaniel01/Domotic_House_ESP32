@@ -1,10 +1,11 @@
-## Table of Contents
+<details>
+<summary>📚 <b>Table of Contents</b> (click per espandere)</summary>
 - [Requirements](#Requirements)
 - [Project Structure](#project-structure)
 - [Instructions](#Instructions)
 - [Imports](#Imports)
 - [How to Use](#how-to-use)
-
+</details>
 # domotic_esp32
 
 This project runs on an **ESP32 using MicroPython**, with a clean folder structure to manage custom and external libraries easily.
