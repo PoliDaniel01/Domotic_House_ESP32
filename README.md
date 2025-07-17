@@ -7,16 +7,18 @@
   
  3. [Project Structure](#project-structure)
   
- 3. [Instructions](#Instructions)
+ 4. [Project Explanation](#project-explanation)
   
- 4. [Imports](#Imports)
+ 5. [How to Start](#how-to-start)
   
- 5.  [How to Use](#how-to-use)
+ 6.  [ Video and Presentation](#video-and-presentation)
+
+ 7.  [Contacts](#contacts)
   
 </details>
 
 
-## Domotic House with ESP32 master - slave
+# 🏠 **Domotic House with ESP32 master - slave**
 
 This
 
@@ -30,7 +32,7 @@ The system follows a **master-slave architecture**:
 ## 🐍**Software Requirements**
 
 
-## 🖥️ **Hardware Requirements**
+# 🖥️ **Hardware Requirements**
 
 4 ESP32 board flashed with MicroPython.
 Python 3.10+ to interact with your boards using esptool
@@ -39,7 +41,7 @@ USB drivers for your ESP32 board installed on your computer.
 
 ## 🔧 **Setting up the hardware**
 
-## 🗂️ **Project Structure**
+# 🗂️ **Project Structure**
 
 ```
 domotica_esp32/
@@ -98,18 +100,18 @@ domotica_esp32/
 └── README.md                                    # Main 
 ```
 
-## 🔍 **Project Explanation**
+# 🔍 **Project Explanation**
 
-## 🚀 **How to Start**
+# 🚀 **How to Start**
 
 Upload all files to the ESP32 using tools like ampy, mpremote, PyMakr, or Thonny.
 Make sure the folder structure is correctly replicated on the device.
 Edit master.py to include your application logic.
 Reset the ESP32 to auto-run your main script.
 
-## 📹 **Video and Presentation**
+# 📹 **Video and Presentation**
 
-## 🌐 **Contacts**
+# 🌐 **Contacts**
 
 Keep all libraries inside the /lib/ directory.
 Include an __init__.py file (even if empty) in library folders to ensure compatibility.
