@@ -1,20 +1,20 @@
 <details>
 <summary>📚 <b>Table of Contents</b></summary>
 
-  - [Requirements](#Requirements)  
+ 1. [Requirements](#Requirements)  
   
-- [Project Structure](#project-structure)
+  2. [Project Structure](#project-structure)
   
-- [Instructions](#Instructions)
+ 3.  [Instructions](#Instructions)
   
-- [Imports](#Imports)
+4. [Imports](#Imports)
   
-- [How to Use](#how-to-use)
+5.  [How to Use](#how-to-use)
   
 </details>
 
 
-# domotic_esp32
+# Domoti House with ESP32 master-slave
 
 This project runs on an **ESP32 using MicroPython**, with a clean folder structure to manage custom and external libraries easily.
 
