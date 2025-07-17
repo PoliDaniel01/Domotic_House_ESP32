@@ -32,7 +32,7 @@ The system follows a **master-slave architecture**:
 ## 🐍**Software Requirements**
 
 
-# 🖥️ **Hardware Requirements**
+## 🖥️ **Hardware Requirements**
 
 
 ## 🔧 **Setting up the hardware**
