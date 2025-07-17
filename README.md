@@ -1,11 +1,13 @@
 <details>
 <summary>📚 <b>Table of Contents</b></summary>
 
- 1. [Requirements](#Requirements)  
+ 1. [About the project](#domotic-house-with-esp32-master---slave)  
+
+ 2. [Requirements](#requirements)
   
- 2. [Project Structure](#project-structure)
+ 3. [Project Structure](#project-structure)
   
- 3.  [Instructions](#Instructions)
+ 3. [Instructions](#Instructions)
   
  4. [Imports](#Imports)
   
@@ -14,7 +16,7 @@
 </details>
 
 
-## Domotic House with ESP32 master-slave
+## Domotic House with ESP32 master - slave
 
 This
 
@@ -35,8 +37,9 @@ Python 3.10+ to interact with your boards using esptool
 Recommended IDE: VSCode with PyMakr extension, or Thonny.
 USB drivers for your ESP32 board installed on your computer.
 
+## 🔧 **Setting up the hardware**
 
-## 🗂️ Project-Structure
+## 🗂️ Project Structure
 
 ```
 domotica_esp32/
@@ -92,31 +95,24 @@ domotica_esp32/
 │       ├── mqtt_retry.py                        # MQTT testing script
 │       └── wifi_config_tool.py                  # WiFi configuration tool
 │   
-└── README.md                                    # Main guide
+└── README.md                                    # Main 
 
-```
-- `master.py`: the main script executed at boot.
-- `lib/`: folder for custom or third-party libraries.
-- `umqtt/`: folder containing the MQTT client module.
-- `simple.py`: contains functions to handle MQTT operations.
-- `__init__.py`: allows MicroPython to treat the folder as a package (can be empty).
-
-## Instructions
+## **Instructions**
 Before uploading files to the esp32 boards, ensure the rigth version of micropython is flashed on them. To do so you can wire them to your computer and, using command prompt or bash:
 1. Create a python environment:
-```
+
 python -m venv esp32_smart_home
 esp32_smart_home\Scripts\activate
-```
+
 2. Download esptool, which is usefull to interact with micropython for both flashing firmware and testing tasks:
-```
+
 pip install esptool
-```
+
 3. Erasing and flashing firmware
-```
+
 esptool erase_flash
 esptool --baud 460800 write_flash 0x1000 micropython_utils/NAME_OF_MICROPYTHON_BINARY
-```
+
 where NAME_OF_MICROPYTHON_BINARY depends on your particoular device model
 
 ## ⚙️ Imports
@@ -124,32 +120,31 @@ where NAME_OF_MICROPYTHON_BINARY depends on your particoular device model
 In MicroPython:
 
 You can use dot notation for imports:
-  ```python
   from umqtt.simple import MQTTClient
-  ```
+
 If needed, manually add the lib folder to sys.path:
 
-  ```python
+
 
 import sys
 sys.path.append('/lib')
 from umqtt import simple
-```
+
 You can also import specific functions directly:
 
-  ```python
+
 from umqtt.simple import connect_mqtt
-```
+
 ## 🚀 How to Use
-  ```python
+
 Upload all files to the ESP32 using tools like ampy, mpremote, PyMakr, or Thonny.
 Make sure the folder structure is correctly replicated on the device.
 Edit master.py to include your application logic.
 Reset the ESP32 to auto-run your main script.
-```
+
 ## ✅ **Best Practices**
- ```python
+
 Keep all libraries inside the /lib/ directory.
 Include an __init__.py file (even if empty) in library folders to ensure compatibility.
 Test imports on your ESP32 to confirm your MicroPython firmware supports nested packages.
-```
+
