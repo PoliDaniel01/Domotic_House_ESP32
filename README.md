@@ -1,10 +1,10 @@
 <details>
 <summary>📚 <b>Table of Contents</b></summary>
-- [Requirements](#Requirements)
-- [Project Structure](#project-structure)
-- [Instructions](#Instructions)
-- [Imports](#Imports)
-- [How to Use](#how-to-use)
+- [Requirements](#Requirements)  
+- [Project Structure](#project-structure)  
+- [Instructions](#Instructions)  
+- [Imports](#Imports)  
+- [How to Use](#how-to-use)  
 </details>
 
 
