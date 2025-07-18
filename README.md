@@ -79,7 +79,7 @@ To get started with this project, you will need the following hardware:
 # 🗂️ **Project Structure**
 
 ```
-domotica_esp32/
+Smart_Home_ESP32/
 │
 ├──Readme_img                                # readme images
 │   ├──ESP32.jpeg                                   # ESP32 ping image
