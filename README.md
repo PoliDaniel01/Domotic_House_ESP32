@@ -1,5 +1,4 @@
 <a id="top"></a>
-# README
 
 <details>
 <summary>📚 <b>Table of Contents</b></summary>
@@ -44,7 +43,7 @@ To get started with this project, you will need the following hardware:
 - ST7789 display
 - BME680 sensor
 - Wi-Fi module
-- General I/O devices
+- General I/O devices  
 [back to top](#top)
 # 🗂️ **Project Structure**
 
@@ -129,4 +128,6 @@ Alessandro Morelato - alessandro.morelato@studenti.unitn.it - @morelatoalessandr
 Daniel Poli - daniel.poli@studenti.unitn.it - @PoliDaniel01  
 Matteo Scoropan - matteo.scoropan@studenti.unitn.it - @Matteosco  
 Sebastiano Quaglio - sebastiano.quaglio@studenti.unitn.it - @quaglio03  
-[back to top](#top)
+|                                                                 |
+|---------------------------------------------------------------|
+| [back to top](#top) |
