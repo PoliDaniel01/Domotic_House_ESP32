@@ -42,12 +42,6 @@ To get started with this project, you will need the following hardware:
 - BME680 sensor
 - Wi-Fi module
 - General I/O devices
-## 🔧 **Setting up the hardware**
-- Flash the ESP32 with the appropriate firmware (e.g., ESP32_GENERIC_28259415-v1.25.0.bin)
-- Connect the ST7789 display and BME680 sensor to the ESP32 as per the driver scripts
-- Configure Wi-Fi settings using wifi_config_tool.py
-- Wire the lights, shutters, climate control and allarm devices to the ESP32 I/O pins
-- Test the setup with the master.py and client.py scripts
 
 # 🗂️ **Project Structure**
 
@@ -111,9 +105,19 @@ domotica_esp32/
 ```
 
 # 🔍 **Project Explanation**
-
+This project is a home automation system built using MicroPython and ESP32 microcontrollers.
+It controls various devices such as lights, shutters, and climate settings through a network using MQTT communication.
+The system includes a web interface for monitoring and control, with data stored in states.json.
+Device drivers (e.g., st7789 for displays, bme680 for sensors) and utility scripts (e.g., wifi_config_tool.py) support the functionality, making it a flexible and scalable solution for domotic application
 # 🚀 **How to Start**
-
+1. Ensure you have the required software and hardware as listed in the Requirements section.
+2. Flash the ESP32 with the appropriate firmware (e.g., ESP32_GENERIC_28259415-v1.25.0.bin).
+3. Set up the hardware:
+    - Connect the ST7789 display and BME680 sensor to the ESP32.
+    - Configure Wi-Fi settings using wifi_config_tool.py.
+    - Wire the lights, shutters, climate control and allarm devices to the ESP32 I/O pins.
+4. Upload the project files to the ESP32 and run master.py to start the system.
+5. Access the web interface via index.html to begin controlling and monitoring your devices.
 
 # 📹 **Video and Presentation**
 
