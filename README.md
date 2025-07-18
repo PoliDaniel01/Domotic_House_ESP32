@@ -28,8 +28,7 @@ The system follows a **master-slave architecture**:
 - **Slave ESP32s:** Nodes handling localized tasks (e.g., room-specific lighting, temperature monitoring).
 - **Stack:** Firmware is written in **MicroPython** for rapid development and IoT-focused functionality.  
 
-|---------------------------------------------------------------|
-| [back to top](#top) |
+<p align="right">(<a href="#top">back to top</a>)</p>
 # 🛠️ **Requirements**
 ## 🐍**Software Requirements**
 To get started with this project, you will require the following software.
@@ -46,7 +45,7 @@ To get started with this project, you will need the following hardware:
 - BME680 sensor
 - Wi-Fi module
 - General I/O devices  
-[back to top](#top)
+<p align="right">(<a href="#top">back to top</a>)</p>
 # 🗂️ **Project Structure**
 
 ```
@@ -107,8 +106,7 @@ domotica_esp32/
 │   
 └── README.md                                   # Documentation 
 ```
-|---------------------------------------------------------------|
-| [back to top](#top) |
+<p align="right">(<a href="#top">back to top</a>)</p>
 
 
 # 🔍 **Project Explanation**
@@ -116,8 +114,7 @@ This project is a home automation system built using MicroPython and ESP32 micro
 It controls various devices such as lights, shutters, and climate settings through a network using MQTT communication.  
 The system includes a web interface for monitoring and control, with data stored in states.json.  
 Device drivers (e.g., st7789 for displays, bme680 for sensors) and utility scripts (e.g., wifi_config_tool.py) support the functionality, making it a flexible and scalable solution for domotic application.  
-|---------------------------------------------------------------|
-| [back to top](#top) |
+<p align="right">(<a href="#top">back to top</a>)</p>
 
 
 # 🚀 **How to Start**
@@ -129,17 +126,18 @@ Device drivers (e.g., st7789 for displays, bme680 for sensors) and utility scrip
     - Wire the lights, shutters, climate control and allarm devices to the ESP32 I/O pins.
 4. Upload the project files to the ESP32 and run master.py to start the system.
 5. Access the web interface via index.html to begin controlling and monitoring your devices.  
-|---------------------------------------------------------------|
-| [back to top](#top) |
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+
 # 📹 **Video and Presentation**
   
-|---------------------------------------------------------------|
-| [back to top](#top) |
+<p align="right">(<a href="#top">back to top</a>)</p>
+
+
 # 🌐 **Contacts**
 Alessandro Morelato - alessandro.morelato@studenti.unitn.it - @morelatoalessandro  
 Daniel Poli - daniel.poli@studenti.unitn.it - @PoliDaniel01  
 Matteo Scoropan - matteo.scoropan@studenti.unitn.it - @Matteosco  
 Sebastiano Quaglio - sebastiano.quaglio@studenti.unitn.it - @quaglio03  
 
-|---------------------------------------------------------------|
-| [back to top](#top) |
+<p align="right">(<a href="#top">back to top</a>)</p>
