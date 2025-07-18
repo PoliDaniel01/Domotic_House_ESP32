@@ -6,7 +6,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/PoliDaniel01/Domotic_House_ESP32">
-    <img src="Readme_img/House.png" alt="Logo" width="200" height="200">
+    <img src="Readme_img/House.png" alt="Logo" width="300" height="300">
   </a>
 
 <h3 align="center">SMART HOME</h3>
@@ -70,6 +70,11 @@ To get started with this project, you will need the following hardware:
 - BME680 sensor
 - Wi-Fi module
 - General I/O devices   
+<p float="center">
+  <img src="Readme_img/ESP32.jpg" alt="msp432p401r" width="692" height="337">
+</p>
+
+
 <p align="right">(<a href="#top">back to top</a>)</p>  
  
 # 🗂️ **Project Structure**
