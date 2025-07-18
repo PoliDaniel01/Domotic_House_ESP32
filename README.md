@@ -26,8 +26,10 @@ This project implements a **smart home automation system** using a network of ES
 The system follows a **master-slave architecture**:
 - **Master ESP32:** Central hub coordinating communication and control logic (e.g., sensors, user inputs).
 - **Slave ESP32s:** Nodes handling localized tasks (e.g., room-specific lighting, temperature monitoring).
-- **Stack:** Firmware is written in **MicroPython** for rapid development and IoT-focused functionality.
-[back to top](#top)
+- **Stack:** Firmware is written in **MicroPython** for rapid development and IoT-focused functionality.  
+
+|---------------------------------------------------------------|
+| [back to top](#top) |
 # 🛠️ **Requirements**
 ## 🐍**Software Requirements**
 To get started with this project, you will require the following software.
@@ -36,7 +38,7 @@ To get started with this project, you will require the following software.
 - Python libraries for device drivers
 - Web server software
 - JSON handling library
-[back to top](#top)
+
 ## 🖥️ **Hardware Requirements**
 To get started with this project, you will need the following hardware:
 - ESP32 microcontroller
@@ -105,12 +107,19 @@ domotica_esp32/
 │   
 └── README.md                                   # Documentation 
 ```
-[back to top](#top)
+|---------------------------------------------------------------|
+| [back to top](#top) |
+
+
 # 🔍 **Project Explanation**
 This project is a home automation system built using MicroPython and ESP32 microcontrollers.  
 It controls various devices such as lights, shutters, and climate settings through a network using MQTT communication.  
 The system includes a web interface for monitoring and control, with data stored in states.json.  
-Device drivers (e.g., st7789 for displays, bme680 for sensors) and utility scripts (e.g., wifi_config_tool.py) support the functionality, making it a flexible and scalable solution for domotic application.
+Device drivers (e.g., st7789 for displays, bme680 for sensors) and utility scripts (e.g., wifi_config_tool.py) support the functionality, making it a flexible and scalable solution for domotic application.  
+|---------------------------------------------------------------|
+| [back to top](#top) |
+
+
 # 🚀 **How to Start**
 1. Ensure you have the required software and hardware as listed in the Requirements section.
 2. Flash the ESP32 with the appropriate firmware (e.g., ESP32_GENERIC_28259415-v1.25.0.bin).
@@ -119,15 +128,18 @@ Device drivers (e.g., st7789 for displays, bme680 for sensors) and utility scrip
     - Configure Wi-Fi settings using wifi_config_tool.py.
     - Wire the lights, shutters, climate control and allarm devices to the ESP32 I/O pins.
 4. Upload the project files to the ESP32 and run master.py to start the system.
-5. Access the web interface via index.html to begin controlling and monitoring your devices.
-[back to top](#top)
+5. Access the web interface via index.html to begin controlling and monitoring your devices.  
+|---------------------------------------------------------------|
+| [back to top](#top) |
 # 📹 **Video and Presentation**
-[back to top](#top)
+  
+|---------------------------------------------------------------|
+| [back to top](#top) |
 # 🌐 **Contacts**
 Alessandro Morelato - alessandro.morelato@studenti.unitn.it - @morelatoalessandro  
 Daniel Poli - daniel.poli@studenti.unitn.it - @PoliDaniel01  
 Matteo Scoropan - matteo.scoropan@studenti.unitn.it - @Matteosco  
 Sebastiano Quaglio - sebastiano.quaglio@studenti.unitn.it - @quaglio03  
-|                                                                 |
+
 |---------------------------------------------------------------|
 | [back to top](#top) |
