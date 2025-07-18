@@ -105,10 +105,10 @@ domotica_esp32/
 ```
 
 # 🔍 **Project Explanation**
-This project is a home automation system built using MicroPython and ESP32 microcontrollers.
-It controls various devices such as lights, shutters, and climate settings through a network using MQTT communication.
-The system includes a web interface for monitoring and control, with data stored in states.json.
-Device drivers (e.g., st7789 for displays, bme680 for sensors) and utility scripts (e.g., wifi_config_tool.py) support the functionality, making it a flexible and scalable solution for domotic application
+This project is a home automation system built using MicroPython and ESP32 microcontrollers.  
+It controls various devices such as lights, shutters, and climate settings through a network using MQTT communication.  
+The system includes a web interface for monitoring and control, with data stored in states.json.  
+Device drivers (e.g., st7789 for displays, bme680 for sensors) and utility scripts (e.g., wifi_config_tool.py) support the functionality, making it a flexible and scalable solution for domotic application.
 # 🚀 **How to Start**
 1. Ensure you have the required software and hardware as listed in the Requirements section.
 2. Flash the ESP32 with the appropriate firmware (e.g., ESP32_GENERIC_28259415-v1.25.0.bin).
@@ -122,7 +122,7 @@ Device drivers (e.g., st7789 for displays, bme680 for sensors) and utility scrip
 # 📹 **Video and Presentation**
 
 # 🌐 **Contacts**
-Alessandro Morelato - alessandro.morelato@studenti.unitn.it - @morelatoalessandro
-Daniel Poli - daniel.poli@studenti.unitn.it - @PoliDaniel01
-Matteo Scoropan - matteo.scoropan@studenti.unitn.it - @Matteosco
-Sebastiano Quaglio - sebastiano.quaglio@studenti.unitn.it - @quaglio03
+Alessandro Morelato - alessandro.morelato@studenti.unitn.it - @morelatoalessandro  
+Daniel Poli - daniel.poli@studenti.unitn.it - @PoliDaniel01  
+Matteo Scoropan - matteo.scoropan@studenti.unitn.it - @Matteosco  
+Sebastiano Quaglio - sebastiano.quaglio@studenti.unitn.it - @quaglio03  
