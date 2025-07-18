@@ -106,8 +106,11 @@ domotica_esp32/
 
 # 🔍 **Project Explanation**
 This project is a home automation system built using MicroPython and ESP32 microcontrollers.
+
 It controls various devices such as lights, shutters, and climate settings through a network using MQTT communication.
+
 The system includes a web interface for monitoring and control, with data stored in states.json.
+
 Device drivers (e.g., st7789 for displays, bme680 for sensors) and utility scripts (e.g., wifi_config_tool.py) support the functionality, making it a flexible and scalable solution for domotic application
 # 🚀 **How to Start**
 1. Ensure you have the required software and hardware as listed in the Requirements section.
