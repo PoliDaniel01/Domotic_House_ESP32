@@ -1,5 +1,21 @@
 <a id="top"></a>
 
+
+
+<!-- PROJECT LOGO -->
+<br />
+<div align="center">
+  <a href="https://github.com/PoliDaniel01/Domotic_House_ESP32">
+    <img src="Readme_img/House.png" alt="Logo" width="140" height="80">
+  </a>
+
+
+
+
+
+
+
+
 <details>
 <summary>📚 <b>Table of Contents</b></summary>
 
