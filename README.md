@@ -28,12 +28,26 @@ The system follows a **master-slave architecture**:
 
 # 🛠️ **Requirements**
 ## 🐍**Software Requirements**
-
+To get started with this project, you will require the following software.
+- MicroPython interpreter
+- MQTT library
+- Python libraries for device drivers
+- Web server software
+- JSON handling library
 
 ## 🖥️ **Hardware Requirements**
-
-
+To get started with this project, you will need the following hardware:
+- ESP32 microcontroller
+- ST7789 display
+- BME680 sensor
+- Wi-Fi module
+- General I/O devices
 ## 🔧 **Setting up the hardware**
+- Flash the ESP32 with the appropriate firmware (e.g., ESP32_GENERIC_28259415-v1.25.0.bin)
+- Connect the ST7789 display and BME680 sensor to the ESP32 as per the driver scripts
+- Configure Wi-Fi settings using wifi_config_tool.py
+- Wire the lights, shutters, climate control and allarm devices to the ESP32 I/O pins
+- Test the setup with the master.py and client.py scripts
 
 # 🗂️ **Project Structure**
 
