@@ -71,7 +71,7 @@ To get started with this project, you will need the following hardware:
 - Wi-Fi module
 - General I/O devices   
 <p float="center">
-  <img src="Readme_img/ESP32.jpg" alt="msp432p401r" width="692" height="337">
+  <img src="Readme_img/ESP32.jpeg" alt="msp432p401r" width="692" height="337">
 </p>
 
 
