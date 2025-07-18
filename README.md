@@ -5,7 +5,7 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/PoliDaniel01/Domotic_House_ESP32">
+  <a href="https://github.com/PoliDaniel01/Smart_Home_ESP32">
     <img src="Readme_img/House.png" alt="Logo" width="300" height="300">
   </a>
 
@@ -17,9 +17,8 @@
   </p>
 </div>
 
-  </p>
+ </p>
 </div>
-
 
 
 
@@ -82,6 +81,10 @@ To get started with this project, you will need the following hardware:
 ```
 domotica_esp32/
 │
+├──Readme_img                                # readme images
+│   ├──ESP32.jpeg                                   # ESP32 ping image
+│   └──House.png                                    # Readme logo
+│   
 ├──Smart_Home_project/                       # Project root
 │   ├──connections/                                 # networking
 │   │   ├── client.py                                   # client script
