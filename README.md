@@ -6,7 +6,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/PoliDaniel01/Domotic_House_ESP32">
-    <img src="Readme_img/House.png" alt="Logo" width="300" height="300">
+    <img src="Readme_img/House.png" alt="Logo" width="200" height="200">
   </a>
 
 <h3 align="center">SMART HOME</h3>
