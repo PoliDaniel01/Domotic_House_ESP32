@@ -139,7 +139,7 @@ Device drivers (e.g., st7789 for displays, bme680 for sensors) and utility scrip
 
 
 # 📹 **Video and Presentation**
-  
+  - Presentation [slides](https://docs.google.com/presentation/d/1vCAURBxBGKJeMjcmVpE1Y5AZ5l1dgMD1rOJj8b4t1aw/edit?slide=id.g36ef622bf16_0_0#slide=id.g36ef622bf16_0_0)
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 
