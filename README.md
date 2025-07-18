@@ -27,7 +27,7 @@
 <details>
 <summary>📚 <b>Table of Contents</b></summary>
 
- 1. [About the project](#-domotic-house-with-esp32-master---slave)  
+ 1. [About the project](#-smart-home-with-esp32-master---slave)  
 
  2. [Requirements](#️-requirements)
   
@@ -44,7 +44,7 @@
 </details>
 
 
-# 🏠 **Domotic House with ESP32 master - slave**
+# 🏠 **Smart Home with ESP32 master - slave**
 
 This project implements a **smart home automation system** using a network of ESP32 microcontrollers.
 The system follows a **master-slave architecture**:
@@ -82,7 +82,7 @@ To get started with this project, you will need the following hardware:
 ```
 domotica_esp32/
 │
-├──Domotic_House_project/                       # Project root
+├──Smart_Home_project/                       # Project root
 │   ├──connections/                                 # networking
 │   │   ├── client.py                                   # client script
 │   │   ├── hub.py                                      # hub script
