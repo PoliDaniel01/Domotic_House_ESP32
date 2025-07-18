@@ -77,6 +77,13 @@ domotica_esp32/
 │   │   └── ESP32_GENERIC_S3-20250415-v1.25.0.bin       # firmware
 │   │
 │   ├──slaves/                                      # slave devices
+│   │   ├── allarm/                                     # allarm control
+│   │   │   ├── lib/                                        # library
+│   │   │   │    └──umqtt/                                      # mqtt library
+│   │   │   │         ├── robust.py                                 # robust connection
+│   │   │   │         └── simple.py                                 # simple connection
+│   │   │   └── allarm.py                               # light script
+│   │   │
 │   │   ├── climate/                                    # climate control
 │   │   │   ├── lib/                                        # library
 │   │   │   │    ├── bme680/                                    # sensor library
@@ -100,7 +107,7 @@ domotica_esp32/
 │   │       │    └──umqtt/                                      # mqtt library
 │   │       │         ├── robust.py                                 # robust connection
 │   │       │         └── simple.py                                 # simple connection
-│   │       └── slave_shutters.py                       # shutter scripot
+│   │       └── shutters.py                                 # shutter scripot
 │   │
 │   └──utils/                                       # utility script
 │       ├── mqtt_retry.py                               # MQTT retry script
