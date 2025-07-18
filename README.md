@@ -28,7 +28,8 @@ The system follows a **master-slave architecture**:
 - **Slave ESP32s:** Nodes handling localized tasks (e.g., room-specific lighting, temperature monitoring).
 - **Stack:** Firmware is written in **MicroPython** for rapid development and IoT-focused functionality.  
 
-<p align="right">(<a href="#top">back to top</a>)</p>
+<p align="right">(<a href="#top">back to top</a>)</p>  
+
 # 🛠️ **Requirements**
 ## 🐍**Software Requirements**
 To get started with this project, you will require the following software.
@@ -44,8 +45,9 @@ To get started with this project, you will need the following hardware:
 - ST7789 display
 - BME680 sensor
 - Wi-Fi module
-- General I/O devices  
-<p align="right">(<a href="#top">back to top</a>)</p>
+- General I/O devices   
+<p align="right">(<a href="#top">back to top</a>)</p>  
+ 
 # 🗂️ **Project Structure**
 
 ```
