@@ -1,3 +1,6 @@
+<a id="top"></a>
+# README
+
 <details>
 <summary>📚 <b>Table of Contents</b></summary>
 
@@ -25,7 +28,7 @@ The system follows a **master-slave architecture**:
 - **Master ESP32:** Central hub coordinating communication and control logic (e.g., sensors, user inputs).
 - **Slave ESP32s:** Nodes handling localized tasks (e.g., room-specific lighting, temperature monitoring).
 - **Stack:** Firmware is written in **MicroPython** for rapid development and IoT-focused functionality.
-
+[back to top](#top)
 # 🛠️ **Requirements**
 ## 🐍**Software Requirements**
 To get started with this project, you will require the following software.
@@ -34,7 +37,7 @@ To get started with this project, you will require the following software.
 - Python libraries for device drivers
 - Web server software
 - JSON handling library
-
+[back to top](#top)
 ## 🖥️ **Hardware Requirements**
 To get started with this project, you will need the following hardware:
 - ESP32 microcontroller
@@ -42,7 +45,7 @@ To get started with this project, you will need the following hardware:
 - BME680 sensor
 - Wi-Fi module
 - General I/O devices
-
+[back to top](#top)
 # 🗂️ **Project Structure**
 
 ```
@@ -103,7 +106,7 @@ domotica_esp32/
 │   
 └── README.md                                   # Documentation 
 ```
-
+[back to top](#top)
 # 🔍 **Project Explanation**
 This project is a home automation system built using MicroPython and ESP32 microcontrollers.  
 It controls various devices such as lights, shutters, and climate settings through a network using MQTT communication.  
@@ -118,11 +121,12 @@ Device drivers (e.g., st7789 for displays, bme680 for sensors) and utility scrip
     - Wire the lights, shutters, climate control and allarm devices to the ESP32 I/O pins.
 4. Upload the project files to the ESP32 and run master.py to start the system.
 5. Access the web interface via index.html to begin controlling and monitoring your devices.
-
+[back to top](#top)
 # 📹 **Video and Presentation**
-
+[back to top](#top)
 # 🌐 **Contacts**
 Alessandro Morelato - alessandro.morelato@studenti.unitn.it - @morelatoalessandro  
 Daniel Poli - daniel.poli@studenti.unitn.it - @PoliDaniel01  
 Matteo Scoropan - matteo.scoropan@studenti.unitn.it - @Matteosco  
 Sebastiano Quaglio - sebastiano.quaglio@studenti.unitn.it - @quaglio03  
+[back to top](#top)
