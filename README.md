@@ -1,6 +1,6 @@
 <a id="top"></a>
 
-
+  </a>
 
 <!-- PROJECT LOGO -->
 <br />
@@ -9,8 +9,10 @@
     <img src="Readme_img/House.png" alt="Logo" width="500" height="500">
   </a>
 
-
-
+    <br />
+    <br /><br />
+  </p>
+</div>
 
 
 
