@@ -122,4 +122,7 @@ Device drivers (e.g., st7789 for displays, bme680 for sensors) and utility scrip
 # 📹 **Video and Presentation**
 
 # 🌐 **Contacts**
-
+Alessandro Morelato - alessandro.morelato@studenti.unitn.it - @morelatoalessandro
+Daniel Poli - daniel.poli@studenti.unitn.it - @PoliDaniel01
+Matteo Scoropan - matteo.scoropan@studenti.unitn.it - @Matteosco
+Sebastiano Quaglio - sebastiano.quaglio@studenti.unitn.it - @quaglio03
