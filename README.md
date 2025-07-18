@@ -6,8 +6,16 @@
 <br />
 <div align="center">
   <a href="https://github.com/PoliDaniel01/Domotic_House_ESP32">
-    <img src="Readme_img/House.png" alt="Logo" width="500" height="500">
+    <img src="Readme_img/House.png" alt="Logo" width="300" height="300">
   </a>
+
+<h3 align="center">SMART HOME</h3>
+
+  <p align="center">
+    Implementation of a Smart Home with ESP32
+
+  </p>
+</div>
 
   </p>
 </div>
