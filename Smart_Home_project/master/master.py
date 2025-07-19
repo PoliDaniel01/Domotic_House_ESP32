@@ -70,9 +70,9 @@ touch = Touch(spi_touch, cs_touch)
 # ===========================
 # CONFIGURATION
 # ===========================
-WIFI_SSID = "TIM-65236427"
-WIFI_PASS = "TORONTO2019"
-MQTT_BROKER = "MacBookAirProMax-Air-di-Matteo-152.local" # Local MQTT broker address
+WIFI_SSID = ""
+WIFI_PASS = ""
+MQTT_BROKER = "" # Local MQTT broker address
 
 STANDBY_TIMEOUT = 60 # Seconds before display goes into standby
 STATE_FILE = "states.json" # File to store persistent states
