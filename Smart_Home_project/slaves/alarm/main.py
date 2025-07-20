@@ -31,9 +31,9 @@ MQTT_BROKER = "YOUR_MQTT_BROKER_IP"
 MQTT_CLIENT_ID = "esp32-alarm-slave"
 
 # --- Hardware Pin Configuration ---
-PIN_SENSORS = [Pin(1, Pin.IN, Pin.PULL_UP), Pin(2, Pin.IN, Pin.PULL_UP)]
-PIN_RESET_BTN = Pin(3, Pin.IN, Pin.PULL_UP)
-PIN_LED = Pin(4, Pin.OUT)
+PIN_SENSORS = [1, 2]
+PIN_RESET_BTN = 3
+PIN_LED = 4
 
 # --- MQTT Topics ---
 TOPIC_STATE_REPORT = b"home/sensor/alarm/state"  # To report triggered/disarmed
@@ -57,12 +57,19 @@ class AlarmManager:
 
         self._setup_hardware()
 
+        # To handle interrupts properly
+        self.sensor_triggered_event = uasyncio.Event()
+        self.reset_pressed_event = uasyncio.Event()
+
     def _setup_hardware(self):
         """Initializes GPIO pins for sensors, button, and LED."""
         self.led = Pin(PIN_LED, Pin.OUT, value=0)
         
+        self.sensors = []
+        for pin in PIN_SENSORS:
+            self.sensors.append(Pin(pin, Pin.IN, Pin.PULL_UP))
         # Attach interrupts to all sensor pins
-        for sensor_pin in PIN_SENSORS:
+        for sensor_pin in self.sensors:
             sensor_pin.irq(trigger=Pin.IRQ_FALLING, handler=self.handle_sensor_trigger)
             
         # Attach interrupt for the reset button
@@ -102,7 +109,7 @@ class AlarmManager:
             print("Alarm: Alarm system ARMED.")
             # Short blink to confirm arming
             self.led.on()
-            time.sleep_ms(100)
+            await uasyncio.sleep_ms(100) # non blocking
             self.led.off()
 
     def disarm_system(self):
@@ -139,6 +146,15 @@ class AlarmManager:
             elif command == "off":
                 self.disarm_system()
 
+    def _is_debounced(self, min_interval_ms=1000):
+        """Checks if the time since last interrpt is sufficient"""
+        current_time = time.ticks_ms()
+        if time.ticks_diff(current_time, self._last_irq_time) < 1000: # 1s debounce
+            return False
+        self._last_irq_time = current_time
+        return True
+
+
     def handle_sensor_trigger(self, pin):
         """
         ISR for sensor pins. Triggers the alarm only if the system is armed.
@@ -149,12 +165,8 @@ class AlarmManager:
         if not self.is_armed or self.is_triggered:
             return # Ignore sensor if disarmed or already triggered
 
-        current_time = time.ticks_ms()
-        if time.ticks_diff(current_time, self._last_irq_time) < 1000: # 1s debounce
-            return
-        self._last_irq_time = current_time
-        
-        self.trigger_alarm()
+        if self._is_debounced():
+            self.sensor_triggered_event.set()
 
     def handle_reset_press(self, pin):
         """
@@ -163,13 +175,8 @@ class AlarmManager:
         :param pin: The Pin object that triggered the interrupt.
         :type pin: machine.Pin
         """
-        current_time = time.ticks_ms()
-        if time.ticks_diff(current_time, self._last_irq_time) < 1000: # 1s debounce
-            return
-        self._last_irq_time = current_time
-        
-        print("Alarm: Reset button pressed.")
-        self.disarm_system()
+        if self._is_debounced():
+            self.reset_pressed_event.set()
 
 
 async def led_blink_task(manager):
@@ -196,6 +203,21 @@ async def mqtt_loop(client):
         await uasyncio.sleep_ms(200)
 
 
+async def event_handler_task(manager):
+    """Event handler, manages manager's interrupts flags. It's asynchronous so it's not blocking"""
+    while True:
+        if manager.sensor_triggered_event.is_set():
+            manager.sensor_triggered_event.clear()
+            if manager.is_armed and not manager.is_triggered:
+                manager.trigger_alarm()
+        if manager.reset_pressed_event.is_set():
+            manager.reset_pressed_event.clear()
+            print("Alarm: Reset button pressed.")
+            manager.disarm_system()
+
+        await uasyncio.sleep_ms(50)
+
+
 async def main():
     """The main asynchronous entry point of the application."""
     try:
@@ -216,6 +238,7 @@ async def main():
         await uasyncio.gather(
             led_blink_task(manager),
             mqtt_loop(mqtt_client),
+            event_handler_task(manager),
         )
 
     except Exception as e:
