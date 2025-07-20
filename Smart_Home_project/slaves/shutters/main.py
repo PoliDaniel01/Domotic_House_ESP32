@@ -60,6 +60,9 @@ class ShuttersManager:
 
         self._setup_hardware()
 
+        self.btn_up_triggered_event = uasyncio.Event()
+        self.btn_down_triggered_event = uasyncio.Event()
+
     def _setup_hardware(self):
         """Initializes GPIO pins for motors and buttons."""
         self.motor_up = Pin(PIN_MOTOR_UP, Pin.OUT, value=0)
@@ -158,6 +161,15 @@ class ShuttersManager:
             if direction in ["up", "down"]:
                 self.move_shutter(direction)
 
+    def _is_debounced(self, min_interval_ms=1000):
+        """Checks if the time since last interrpt is sufficient"""
+        current_time = time.ticks_ms()
+        if time.ticks_diff(current_time, self._last_irq_time) < 1000: # 1s debounce
+            return False
+        self._last_irq_time = current_time
+        return True
+
+
     def handle_button_press(self, pin):
         """
         ISR for the up/down buttons.
@@ -165,15 +177,11 @@ class ShuttersManager:
         :param pin: The Pin object that triggered the interrupt.
         :type pin: machine.Pin
         """
-        current_time = time.ticks_ms()
-        if time.ticks_diff(current_time, self._last_irq_time) < 500: # 500ms debounce
-            return
-        self._last_irq_time = current_time
-
-        if pin == self.btn_up:
-            self.move_shutter("up")
-        elif pin == self.btn_down:
-            self.move_shutter("down")
+        if self._is_debounced():
+            if pin == self.btn_up:
+                self.btn_up_triggered_event.set()
+            elif pin == self.btn_down:
+                self.btn_down_triggered_event.set()
 
 
 async def mqtt_loop(client):
@@ -187,6 +195,26 @@ async def mqtt_loop(client):
             reset()
         await uasyncio.sleep_ms(200)
 
+
+async def button_handler_task(manager):
+    """
+    Asynchronous task to handle logic after a button press.
+
+    This task safely waits for an event from the ISR, then performs
+    the state changes and MQTT publishing.
+
+    :param manager: The instance of ShutterstManager class.
+    """
+    while True:
+        if manager.btn_up_triggered_event.is_set():
+            manager.btn_up_triggered_event.clear()
+            manager.move_shutter("up")
+        elif manager.btn_down_triggered_event.is_set():
+            manager.btn_down_triggered_event.clear()
+            manager.move_shutter("down")
+
+        # Wait a short period before checking again to yield control.
+        await uasyncio.sleep_ms(50)
 
 async def main():
     """The main asynchronous entry point of the application."""
@@ -207,7 +235,10 @@ async def main():
         print("Shutters: Application running. Starting tasks.")
         # The only background task needed is the MQTT loop.
         # Motor control is handled by tasks created on-demand.
-        await mqtt_loop(mqtt_client)
+        await uasyncio.gather(
+            mqtt_loop(mqtt_client),
+            button_handler_task(manager),
+        )
 
     except Exception as e:
         print(f"Shutters: A fatal error occurred in main: {e}")
