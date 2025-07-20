@@ -1,0 +1,366 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>smarthome.alarm.main &mdash; Smart Home Project 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Smart Home Project
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">Project Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Smart Home Project</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">smarthome.alarm.main</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for smarthome.alarm.main</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Main script for the ESP32 board managing the alarm system.</span>
+
+<span class="sd">This script is responsible for:</span>
+<span class="sd">- Monitoring sensor inputs (e.g., door/window contacts).</span>
+<span class="sd">- Handling a physical reset button.</span>
+<span class="sd">- Activating an indicator LED when the alarm is triggered.</span>
+<span class="sd">- Using interrupts for all physical inputs for efficient operation.</span>
+<span class="sd">- Communicating with the master board via MQTT to be armed/disarmed and to report its state.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># Standard library imports</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">uasyncio</span>
+
+<span class="c1"># MicroPython-specific imports</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">machine</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pin</span><span class="p">,</span> <span class="n">reset</span>
+
+<span class="c1"># Local application/library specific imports</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">smarthome.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">wifi</span><span class="p">,</span> <span class="n">mqtt</span>
+
+<span class="c1"># ==============================</span>
+<span class="c1"># CONFIGURATION</span>
+<span class="c1"># ==============================</span>
+<span class="c1"># --- Wi-Fi Configuration ---</span>
+<span class="n">WIFI_SSID</span> <span class="o">=</span> <span class="s2">&quot;YOUR_WIFI_SSID&quot;</span>
+<span class="n">WIFI_PASS</span> <span class="o">=</span> <span class="s2">&quot;YOUR_WIFI_PASSWORD&quot;</span>
+
+<span class="c1"># --- MQTT Configuration ---</span>
+<span class="n">MQTT_BROKER</span> <span class="o">=</span> <span class="s2">&quot;YOUR_MQTT_BROKER_IP&quot;</span>
+<span class="n">MQTT_CLIENT_ID</span> <span class="o">=</span> <span class="s2">&quot;esp32-alarm-slave&quot;</span>
+
+<span class="c1"># --- Hardware Pin Configuration ---</span>
+<span class="n">PIN_SENSORS</span> <span class="o">=</span> <span class="p">[</span><span class="n">Pin</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">IN</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">PULL_UP</span><span class="p">),</span> <span class="n">Pin</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">IN</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">PULL_UP</span><span class="p">)]</span>
+<span class="n">PIN_RESET_BTN</span> <span class="o">=</span> <span class="n">Pin</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">IN</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">PULL_UP</span><span class="p">)</span>
+<span class="n">PIN_LED</span> <span class="o">=</span> <span class="n">Pin</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">OUT</span><span class="p">)</span>
+
+<span class="c1"># --- MQTT Topics ---</span>
+<span class="n">TOPIC_STATE_REPORT</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;home/sensor/alarm/state&quot;</span>  <span class="c1"># To report triggered/disarmed</span>
+<span class="n">TOPIC_ARM_CMD</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;home/sensor/alarm/set&quot;</span>         <span class="c1"># To receive arm/disarm commands</span>
+
+<span class="n">MQTT_SUBSCRIPTIONS</span> <span class="o">=</span> <span class="p">[</span><span class="n">TOPIC_ARM_CMD</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="AlarmManager">
+<a class="viewcode-back" href="../../../modules.html#smarthome.alarm.main.AlarmManager">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AlarmManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Manages the state and logic of the alarm system.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes the AlarmManager.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_irq_time</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># State machine variables</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_armed</span> <span class="o">=</span> <span class="kc">False</span>      <span class="c1"># Is the alarm ready to be triggered?</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_triggered</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># Is the alarm currently going off?</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_hardware</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_setup_hardware</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes GPIO pins for sensors, button, and LED.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">led</span> <span class="o">=</span> <span class="n">Pin</span><span class="p">(</span><span class="n">PIN_LED</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">OUT</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        
+        <span class="c1"># Attach interrupts to all sensor pins</span>
+        <span class="k">for</span> <span class="n">sensor_pin</span> <span class="ow">in</span> <span class="n">PIN_SENSORS</span><span class="p">:</span>
+            <span class="n">sensor_pin</span><span class="o">.</span><span class="n">irq</span><span class="p">(</span><span class="n">trigger</span><span class="o">=</span><span class="n">Pin</span><span class="o">.</span><span class="n">IRQ_FALLING</span><span class="p">,</span> <span class="n">handler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_sensor_trigger</span><span class="p">)</span>
+            
+        <span class="c1"># Attach interrupt for the reset button</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset_btn</span> <span class="o">=</span> <span class="n">Pin</span><span class="p">(</span><span class="n">PIN_RESET_BTN</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">IN</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">PULL_UP</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset_btn</span><span class="o">.</span><span class="n">irq</span><span class="p">(</span><span class="n">trigger</span><span class="o">=</span><span class="n">Pin</span><span class="o">.</span><span class="n">IRQ_FALLING</span><span class="p">,</span> <span class="n">handler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_reset_press</span><span class="p">)</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Alarm: Hardware pins initialized and interrupts attached.&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="AlarmManager.set_mqtt_client">
+<a class="viewcode-back" href="../../../modules.html#smarthome.alarm.main.AlarmManager.set_mqtt_client">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_mqtt_client</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the MQTT client instance after it has been connected.</span>
+
+<span class="sd">        :param client: The connected MQTT client.</span>
+<span class="sd">        :type client: umqtt.simple.MQTTClient</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span> <span class="o">=</span> <span class="n">client</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_publish_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_msg</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Publishes the alarm&#39;s current state to MQTT.</span>
+
+<span class="sd">        :param state_msg: The message to publish (e.g., b&quot;triggered&quot;, b&quot;disarmed&quot;).</span>
+<span class="sd">        :type state_msg: bytes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">TOPIC_STATE_REPORT</span><span class="p">,</span> <span class="n">state_msg</span><span class="p">,</span> <span class="n">retain</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Alarm: → MQTT: Published state: </span><span class="si">{</span><span class="n">state_msg</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Alarm: MQTT publish error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="AlarmManager.arm_system">
+<a class="viewcode-back" href="../../../modules.html#smarthome.alarm.main.AlarmManager.arm_system">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">arm_system</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Arms the alarm system, making it ready to be triggered.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_armed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_armed</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Alarm: Alarm system ARMED.&quot;</span><span class="p">)</span>
+            <span class="c1"># Short blink to confirm arming</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">led</span><span class="o">.</span><span class="n">on</span><span class="p">()</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep_ms</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">led</span><span class="o">.</span><span class="n">off</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="AlarmManager.disarm_system">
+<a class="viewcode-back" href="../../../modules.html#smarthome.alarm.main.AlarmManager.disarm_system">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">disarm_system</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Disarms the alarm, stopping any active trigger and preventing new ones.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_armed</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_triggered</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_armed</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_triggered</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">led</span><span class="o">.</span><span class="n">off</span><span class="p">()</span> <span class="c1"># Ensure LED is off</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Alarm: Alarm system DISARMED.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_publish_state</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;disarmed&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AlarmManager.trigger_alarm">
+<a class="viewcode-back" href="../../../modules.html#smarthome.alarm.main.AlarmManager.trigger_alarm">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">trigger_alarm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Activates the alarm trigger state.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_triggered</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_triggered</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Alarm: ALARM TRIGGERED!&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_publish_state</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;triggered&quot;</span><span class="p">)</span></div>
+
+            <span class="c1"># The async blinking task will take over the LED.</span>
+
+<div class="viewcode-block" id="AlarmManager.mqtt_callback">
+<a class="viewcode-back" href="../../../modules.html#smarthome.alarm.main.AlarmManager.mqtt_callback">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mqtt_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Callback for handling incoming MQTT arm/disarm commands.</span>
+
+<span class="sd">        :param topic: The topic the message was received on.</span>
+<span class="sd">        :type topic: bytes</span>
+<span class="sd">        :param msg: The message payload.</span>
+<span class="sd">        :type msg: bytes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">topic</span> <span class="o">==</span> <span class="n">TOPIC_ARM_CMD</span><span class="p">:</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Alarm: MQTT command received: </span><span class="si">{</span><span class="n">command</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">command</span> <span class="o">==</span> <span class="s2">&quot;on&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">arm_system</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">command</span> <span class="o">==</span> <span class="s2">&quot;off&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">disarm_system</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="AlarmManager.handle_sensor_trigger">
+<a class="viewcode-back" href="../../../modules.html#smarthome.alarm.main.AlarmManager.handle_sensor_trigger">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">handle_sensor_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pin</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ISR for sensor pins. Triggers the alarm only if the system is armed.</span>
+
+<span class="sd">        :param pin: The Pin object that triggered the interrupt.</span>
+<span class="sd">        :type pin: machine.Pin</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_armed</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_triggered</span><span class="p">:</span>
+            <span class="k">return</span> <span class="c1"># Ignore sensor if disarmed or already triggered</span>
+
+        <span class="n">current_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">ticks_ms</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">time</span><span class="o">.</span><span class="n">ticks_diff</span><span class="p">(</span><span class="n">current_time</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_irq_time</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1000</span><span class="p">:</span> <span class="c1"># 1s debounce</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_irq_time</span> <span class="o">=</span> <span class="n">current_time</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">trigger_alarm</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="AlarmManager.handle_reset_press">
+<a class="viewcode-back" href="../../../modules.html#smarthome.alarm.main.AlarmManager.handle_reset_press">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">handle_reset_press</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pin</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ISR for the reset button. Disarms the system.</span>
+
+<span class="sd">        :param pin: The Pin object that triggered the interrupt.</span>
+<span class="sd">        :type pin: machine.Pin</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">current_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">ticks_ms</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">time</span><span class="o">.</span><span class="n">ticks_diff</span><span class="p">(</span><span class="n">current_time</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_irq_time</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1000</span><span class="p">:</span> <span class="c1"># 1s debounce</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_irq_time</span> <span class="o">=</span> <span class="n">current_time</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Alarm: Reset button pressed.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">disarm_system</span><span class="p">()</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="led_blink_task">
+<a class="viewcode-back" href="../../../modules.html#smarthome.alarm.main.led_blink_task">[docs]</a>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">led_blink_task</span><span class="p">(</span><span class="n">manager</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Asynchronous task to blink the LED when the alarm is triggered.&quot;&quot;&quot;</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">manager</span><span class="o">.</span><span class="n">is_triggered</span><span class="p">:</span>
+            <span class="n">manager</span><span class="o">.</span><span class="n">led</span><span class="o">.</span><span class="n">toggle</span><span class="p">()</span>
+            <span class="k">await</span> <span class="n">uasyncio</span><span class="o">.</span><span class="n">sleep_ms</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># If not triggered, ensure LED is off and wait efficiently.</span>
+            <span class="n">manager</span><span class="o">.</span><span class="n">led</span><span class="o">.</span><span class="n">off</span><span class="p">()</span>
+            <span class="k">await</span> <span class="n">uasyncio</span><span class="o">.</span><span class="n">sleep_ms</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="mqtt_loop">
+<a class="viewcode-back" href="../../../modules.html#smarthome.alarm.main.mqtt_loop">[docs]</a>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">mqtt_loop</span><span class="p">(</span><span class="n">client</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Periodically checks for incoming MQTT messages.&quot;&quot;&quot;</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">client</span><span class="o">.</span><span class="n">check_msg</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Alarm: MQTT check_msg error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">. Resetting...&quot;</span><span class="p">)</span>
+            <span class="k">await</span> <span class="n">uasyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+            <span class="n">reset</span><span class="p">()</span>
+        <span class="k">await</span> <span class="n">uasyncio</span><span class="o">.</span><span class="n">sleep_ms</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../../modules.html#smarthome.alarm.main.main">[docs]</a>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The main asynchronous entry point of the application.&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">manager</span> <span class="o">=</span> <span class="n">AlarmManager</span><span class="p">()</span>
+        <span class="n">wifi</span><span class="o">.</span><span class="n">connect_wifi</span><span class="p">(</span><span class="n">WIFI_SSID</span><span class="p">,</span> <span class="n">WIFI_PASS</span><span class="p">)</span>
+        <span class="n">mqtt_client</span> <span class="o">=</span> <span class="n">mqtt</span><span class="o">.</span><span class="n">connect_mqtt</span><span class="p">(</span>
+            <span class="n">MQTT_CLIENT_ID</span><span class="p">,</span>
+            <span class="n">MQTT_BROKER</span><span class="p">,</span>
+            <span class="n">callback</span><span class="o">=</span><span class="n">manager</span><span class="o">.</span><span class="n">mqtt_callback</span><span class="p">,</span>
+            <span class="n">subscriptions</span><span class="o">=</span><span class="n">MQTT_SUBSCRIPTIONS</span>
+        <span class="p">)</span>
+        <span class="n">manager</span><span class="o">.</span><span class="n">set_mqtt_client</span><span class="p">(</span><span class="n">mqtt_client</span><span class="p">)</span>
+        
+        <span class="c1"># Report initial state as disarmed</span>
+        <span class="n">manager</span><span class="o">.</span><span class="n">_publish_state</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;disarmed&quot;</span><span class="p">)</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Alarm: Application running. Starting tasks.&quot;</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">uasyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span>
+            <span class="n">led_blink_task</span><span class="p">(</span><span class="n">manager</span><span class="p">),</span>
+            <span class="n">mqtt_loop</span><span class="p">(</span><span class="n">mqtt_client</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Alarm: A fatal error occurred in main: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">uasyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">reset</span><span class="p">()</span></div>
+
+
+<span class="c1"># Run the application</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">uasyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+    <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Alarm: Application stopped by user.&quot;</span><span class="p">)</span>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Alessandro Morelato, Daniel Poli, Matteo Scoropan, Seqbastiano Quaglio.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,563 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>smarthome.master.main &mdash; Smart Home Project 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Smart Home Project
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">Project Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Smart Home Project</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">smarthome.master.main</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for smarthome.master.main</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Main script for the master ESP32 board in the smart home system.</span>
+
+<span class="sd">This script is responsible for:</span>
+<span class="sd">- Driving the ST7789 display and handling XPT2046 touch input.</span>
+<span class="sd">- Providing a user interface to control various smart home devices.</span>
+<span class="sd">- Running a Microdot web server for remote control via Wi-Fi.</span>
+<span class="sd">- Communicating with other ESP32 boards (slaves) via MQTT.</span>
+<span class="sd">- Managing device states and persisting them to a file.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># Standard library imports</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">uasyncio</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">asyncio</span>
+
+<span class="c1"># MicroPython-specific imports</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">machine</span><span class="w"> </span><span class="kn">import</span> <span class="n">reset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">machine</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pin</span><span class="p">,</span> <span class="n">SPI</span>
+
+<span class="c1"># Local application/library specific imports</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">smarthome.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">wifi</span><span class="p">,</span> <span class="n">mqtt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">smarthome.common.webserver</span><span class="w"> </span><span class="kn">import</span> <span class="n">WebServer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">smarthome.common.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">DisplayManager</span>
+
+
+<span class="c1"># ==============================</span>
+<span class="c1"># CONFIGURATION</span>
+<span class="c1"># ==============================</span>
+
+<span class="c1"># --- Wi-Fi Configuration ---</span>
+<span class="n">WIFI_SSID</span> <span class="o">=</span> <span class="s2">&quot;YOUR_WIFI_SSID&quot;</span>
+<span class="n">WIFI_PASS</span> <span class="o">=</span> <span class="s2">&quot;YOUR_WIFI_PASSWORD&quot;</span>
+
+<span class="c1"># --- MQTT Configuration ---</span>
+<span class="n">MQTT_BROKER</span> <span class="o">=</span> <span class="s2">&quot;YOUR_MQTT_BROKER_IP&quot;</span>
+<span class="n">MQTT_CLIENT_ID</span> <span class="o">=</span> <span class="s2">&quot;esp32-master-display&quot;</span>
+
+
+<span class="c1"># --- Application Settings ---</span>
+<span class="n">STANDBY_TIMEOUT</span> <span class="o">=</span> <span class="mi">60</span>  <span class="c1"># Seconds before display goes into standby</span>
+<span class="n">STATE_FILE</span> <span class="o">=</span> <span class="s2">&quot;states.json&quot;</span> <span class="c1"># File to store persistent states</span>
+
+<span class="c1"># --- Hardware Pin Configuration ---</span>
+<span class="n">PIN_DISP_BL</span> <span class="o">=</span> <span class="mi">21</span>
+
+
+
+<span class="c1"># --- MQTT Topics ---</span>
+<span class="c1"># This dictionary maps device names to their command topics.</span>
+<span class="n">MQTT_COMMAND_TOPICS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;soggiorno&quot;</span><span class="p">:</span> <span class="s2">&quot;home/led/soggiorno/command&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;cucina&quot;</span><span class="p">:</span> <span class="s2">&quot;home/led/cucina/command&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;camera&quot;</span><span class="p">:</span> <span class="s2">&quot;home/led/camera/command&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;aria_condizionata&quot;</span><span class="p">:</span> <span class="s2">&quot;home/led/aria_condizionata/command&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;riscaldamento&quot;</span><span class="p">:</span> <span class="s2">&quot;home/led/riscaldamento/command&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;allarme&quot;</span><span class="p">:</span> <span class="s2">&quot;home/sensor/alarm/set&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;tapparella&quot;</span><span class="p">:</span> <span class="s2">&quot;home/actuator/tapparella/set&quot;</span>
+<span class="p">}</span>
+
+
+<span class="c1"># Topics to subscribe to for state updates from slaves.</span>
+<span class="n">MQTT_SUBSCRIPTIONS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="sa">b</span><span class="s2">&quot;home/led/+/state&quot;</span><span class="p">,</span>
+    <span class="sa">b</span><span class="s2">&quot;home/status/temperature&quot;</span><span class="p">,</span>
+    <span class="sa">b</span><span class="s2">&quot;home/sensor/alarm/state&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="StateManager">
+<a class="viewcode-back" href="../../../modules.html#smarthome.master.main.StateManager">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">StateManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Manages the state of all devices and application settings.</span>
+
+<span class="sd">    This class handles loading states from and saving states to a JSON file,</span>
+<span class="sd">    ensuring persistence across reboots.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_file</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the StateManager.</span>
+
+<span class="sd">        :param state_file: The path to the file used for state persistence.</span>
+<span class="sd">        :type state_file: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state_file</span> <span class="o">=</span> <span class="n">state_file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_states</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load_states</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads device states from the JSON file.</span>
+
+<span class="sd">        If the file doesn&#39;t exist or is invalid, it returns a default state.</span>
+
+<span class="sd">        :return: A dictionary containing the device states.</span>
+<span class="sd">        :rtype: dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">states</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Master: States loaded from file.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">states</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Master: Could not load state file &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_state_file</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">. Using defaults.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;soggiorno&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">&quot;cucina&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">&quot;camera&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">&quot;aria_condizionata&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">&quot;riscaldamento&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">&quot;allarme&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">&quot;auto_mode&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">&quot;desired_temperature&quot;</span><span class="p">:</span> <span class="mf">22.0</span>
+            <span class="p">}</span>
+
+<div class="viewcode-block" id="StateManager.save_states">
+<a class="viewcode-back" href="../../../modules.html#smarthome.master.main.StateManager.save_states">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_states</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Saves the current device states to the JSON file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_state_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Master: States saved to file.&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Master: Error saving states to &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_state_file</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="StateManager.get_state">
+<a class="viewcode-back" href="../../../modules.html#smarthome.master.main.StateManager.get_state">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets the state of a specific device or setting.</span>
+
+<span class="sd">        :param key: The key for the state to retrieve.</span>
+<span class="sd">        :type key: str</span>
+<span class="sd">        :param default: The default value to return if the key is not found.</span>
+<span class="sd">        :return: The value of the state.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="StateManager.set_state">
+<a class="viewcode-back" href="../../../modules.html#smarthome.master.main.StateManager.set_state">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the state of a device or setting.</span>
+
+<span class="sd">        :param key: The key for the state to set.</span>
+<span class="sd">        :type key: str</span>
+<span class="sd">        :param value: The new value for the state.</span>
+<span class="sd">        :param save: Whether to immediately save the states to the file.</span>
+<span class="sd">        :type save: bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">if</span> <span class="n">save</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">save_states</span><span class="p">()</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="DeviceManager">
+<a class="viewcode-back" href="../../../modules.html#smarthome.master.main.DeviceManager">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DeviceManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Manages device logic, state changes, and MQTT communication.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_manager</span><span class="p">,</span> <span class="n">mqtt_command_topics</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the DeviceManager.</span>
+
+<span class="sd">        :param state_manager: An instance of StateManager.</span>
+<span class="sd">        :type state_manager: StateManager</span>
+<span class="sd">        :param mqtt_command_topics: Dictionary mapping device names to MQTT topics</span>
+<span class="sd">        :type mqtt_command_topics: dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_manager</span> <span class="o">=</span> <span class="n">state_manager</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_command_topics</span> <span class="o">=</span> <span class="n">mqtt_command_topics</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">published_states</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ui_update_callback</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="DeviceManager.set_mqtt_client">
+<a class="viewcode-back" href="../../../modules.html#smarthome.master.main.DeviceManager.set_mqtt_client">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_mqtt_client</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the MQTT client instance after it has been connected.</span>
+
+<span class="sd">        :param client: The connected MQTT client.</span>
+<span class="sd">        :type client: MQTTClient</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span> <span class="o">=</span> <span class="n">client</span></div>
+
+
+<div class="viewcode-block" id="DeviceManager.set_ui_update_callback">
+<a class="viewcode-back" href="../../../modules.html#smarthome.master.main.DeviceManager.set_ui_update_callback">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_ui_update_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets a callback function to notify UI of state changes.</span>
+
+<span class="sd">        :param callback: Function to call when UI should be updated</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ui_update_callback</span> <span class="o">=</span> <span class="n">callback</span></div>
+
+
+<div class="viewcode-block" id="DeviceManager.set_device_state">
+<a class="viewcode-back" href="../../../modules.html#smarthome.master.main.DeviceManager.set_device_state">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_device_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">new_state</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the state of a device and publishes the change via MQTT.</span>
+
+<span class="sd">        :param name: The name of the device (e.g., &quot;soggiorno&quot;).</span>
+<span class="sd">        :type name: str</span>
+<span class="sd">        :param new_state: The new state (True for ON, False for OFF).</span>
+<span class="sd">        :type new_state: bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Master: [STATE] Setting </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="s1">&#39;ON&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">new_state</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;OFF&#39;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_manager</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">new_state</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        
+        <span class="c1"># If climate control is manually changed, disable auto mode</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;aria_condizionata&quot;</span><span class="p">,</span> <span class="s2">&quot;riscaldamento&quot;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state_manager</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="s2">&quot;auto_mode&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">_publish_state</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ui_update_callback</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ui_update_callback</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_publish_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Publishes a device&#39;s state to its MQTT command topic.</span>
+
+<span class="sd">        :param name: The name of the device.</span>
+<span class="sd">        :type name: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Master: MQTT client not available. Cannot publish state.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">topic</span> <span class="o">=</span> <span class="n">MQTT_COMMAND_TOPICS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">topic</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Master: No command topic found for device &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+            
+        <span class="n">value</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;ON&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_manager</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="k">else</span> <span class="sa">b</span><span class="s2">&quot;OFF&quot;</span>
+        
+        <span class="c1"># Special case for shutters</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;tapparella&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="c1"># Shutters are handled differently</span>
+
+        <span class="c1"># Publish only if state has changed since last publish</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">published_states</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">!=</span> <span class="n">value</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">topic</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">retain</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">published_states</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Master: → MQTT: Published </span><span class="si">{</span><span class="n">topic</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">value</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Master: MQTT publish error for </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Master: → MQTT: State for </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> unchanged, skipping publish.&quot;</span><span class="p">)</span>
+            
+<div class="viewcode-block" id="DeviceManager.publish_all_states">
+<a class="viewcode-back" href="../../../modules.html#smarthome.master.main.DeviceManager.publish_all_states">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">publish_all_states</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Publishes the current state of all devices to MQTT.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">MQTT_COMMAND_TOPICS</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;tapparella&quot;</span><span class="p">:</span> <span class="c1"># Don&#39;t publish shutter state on startup</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_publish_state</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DeviceManager.pubblish_shutter_command">
+<a class="viewcode-back" href="../../../modules.html#smarthome.master.main.DeviceManager.pubblish_shutter_command">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">pubblish_shutter_command</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">direction</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Publishes a shutter command (up/down)</span>
+
+<span class="sd">        :param direction: &quot;up&quot; or &quot;down&quot;</span>
+<span class="sd">        :type direction: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">topic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_command_topics</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tapparella&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">topic</span> <span class="ow">and</span> <span class="n">direction</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;up&quot;</span><span class="p">,</span> <span class="s2">&quot;down&quot;</span><span class="p">]:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">topic</span><span class="p">,</span> <span class="n">direction</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">state_manager</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="s2">&quot;tapparella_state&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;moving_</span><span class="si">{</span><span class="n">direction</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Master: → MQTT: Shutter command </span><span class="si">{direction}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Master: MQTT shutter publish error: </span><span class="si">{e}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DeviceManager.mqtt_callback">
+<a class="viewcode-back" href="../../../modules.html#smarthome.master.main.DeviceManager.mqtt_callback">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mqtt_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Callback function for handling incoming MQTT messages.</span>
+
+<span class="sd">        :param topic: The topic the message was received on.</span>
+<span class="sd">        :type topic: bytes</span>
+<span class="sd">        :param msg: The message payload.</span>
+<span class="sd">        :type msg: bytes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">topic_str</span> <span class="o">=</span> <span class="n">topic</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+        <span class="n">msg_str</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Master: MQTT received: </span><span class="si">{</span><span class="n">topic_str</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">msg_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">updated</span> <span class="o">=</span> <span class="kc">False</span>
+        
+        <span class="c1"># Handle temperature updates</span>
+        <span class="k">if</span> <span class="n">topic_str</span> <span class="o">==</span> <span class="s2">&quot;home/status/temperature&quot;</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">temp</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">msg_str</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">state_manager</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="s1">&#39;current_temperature&#39;</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_manager</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="s2">&quot;auto_mode&quot;</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">evaluate_auto_logic</span><span class="p">()</span>
+                <span class="n">updated</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Master: Invalid temperature value received: </span><span class="si">{</span><span class="n">msg_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Handle state updates from other devices</span>
+        <span class="k">elif</span> <span class="n">topic_str</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;/state&quot;</span><span class="p">):</span>
+            <span class="n">parts</span> <span class="o">=</span> <span class="n">topic_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">device_name</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">device_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_manager</span><span class="o">.</span><span class="n">states</span><span class="p">:</span>
+                    <span class="n">new_state</span> <span class="o">=</span> <span class="p">(</span><span class="n">msg_str</span> <span class="o">==</span> <span class="s2">&quot;on&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">state_manager</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="n">device_name</span><span class="p">,</span> <span class="n">new_state</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">updated</span> <span class="o">=</span> <span class="kc">True</span>
+        
+        <span class="k">if</span> <span class="n">updated</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ui_update_callback</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ui_update_callback</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="DeviceManager.evaluate_auto_logic">
+<a class="viewcode-back" href="../../../modules.html#smarthome.master.main.DeviceManager.evaluate_auto_logic">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">evaluate_auto_logic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluates and acts on the climate auto mode logic.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_manager</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="s2">&quot;auto_mode&quot;</span><span class="p">):</span>
+            <span class="k">return</span>
+
+        <span class="n">current_temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_manager</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="s2">&quot;current_temperature&quot;</span><span class="p">)</span>
+        <span class="n">desired_temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_manager</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="s2">&quot;desired_temperature&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">current_temp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Master: AUTO: No temperature data, skipping.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Master: AUTO: Evaluating. Current=</span><span class="si">{</span><span class="n">current_temp</span><span class="si">}</span><span class="s2">, Target=</span><span class="si">{</span><span class="n">desired_temp</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Hysteresis thresholds</span>
+        <span class="n">heat_on_thresh</span> <span class="o">=</span> <span class="n">desired_temp</span> <span class="o">-</span> <span class="mf">0.5</span>
+        <span class="n">ac_on_thresh</span> <span class="o">=</span> <span class="n">desired_temp</span> <span class="o">+</span> <span class="mf">0.5</span>
+
+        <span class="c1"># Turn on heating</span>
+        <span class="k">if</span> <span class="n">current_temp</span> <span class="o">&lt;</span> <span class="n">heat_on_thresh</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_manager</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="s2">&quot;riscaldamento&quot;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_device_state</span><span class="p">(</span><span class="s2">&quot;riscaldamento&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_manager</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="s2">&quot;aria_condizionata&quot;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_device_state</span><span class="p">(</span><span class="s2">&quot;aria_condizionata&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="c1"># Turn on AC</span>
+        <span class="k">elif</span> <span class="n">current_temp</span> <span class="o">&gt;</span> <span class="n">ac_on_thresh</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_manager</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="s2">&quot;aria_condizionata&quot;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_device_state</span><span class="p">(</span><span class="s2">&quot;aria_condizionata&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_manager</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="s2">&quot;riscaldamento&quot;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_device_state</span><span class="p">(</span><span class="s2">&quot;riscaldamento&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="c1"># Turn everything off (within comfort zone)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_manager</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="s2">&quot;riscaldamento&quot;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_device_state</span><span class="p">(</span><span class="s2">&quot;riscaldamento&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_manager</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="s2">&quot;aria_condizionata&quot;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_device_state</span><span class="p">(</span><span class="s2">&quot;aria_condizionata&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../../modules.html#smarthome.master.main.main">[docs]</a>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The main asynchronous entry point of the application.&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># 1. Connect to network</span>
+        <span class="n">wifi</span><span class="o">.</span><span class="n">connect_wifi</span><span class="p">(</span><span class="n">WIFI_SSID</span><span class="p">,</span> <span class="n">WIFI_PASS</span><span class="p">)</span>
+
+        <span class="c1"># 2. Initialize managers</span>
+        <span class="n">state_manager</span> <span class="o">=</span> <span class="n">StateManager</span><span class="p">(</span><span class="n">STATE_FILE</span><span class="p">)</span>
+        <span class="n">device_manager</span> <span class="o">=</span> <span class="n">DeviceManager</span><span class="p">(</span><span class="n">state_manager</span><span class="p">)</span>
+
+        <span class="c1"># 3. Inizialize display with configuration</span>
+        <span class="n">display_manager</span> <span class="o">=</span> <span class="n">DisplayManager</span><span class="p">(</span>
+            <span class="n">state_manager</span><span class="p">,</span> 
+            <span class="n">device_manager</span><span class="p">,</span>
+            <span class="n">standby_timeout</span><span class="o">=</span><span class="n">STANDBY_TIMEOUT</span><span class="p">)</span>
+
+        <span class="c1"># 4. Initialize web server</span>
+        <span class="n">web_server</span> <span class="o">=</span> <span class="n">WebServer</span><span class="p">(</span><span class="n">state_manager</span><span class="p">,</span> <span class="n">device_manager</span><span class="p">)</span>
+
+        <span class="c1"># 5. Set up cross-references</span>
+        <span class="n">device_manager</span><span class="o">.</span><span class="n">set_ui_update_callback</span><span class="p">(</span><span class="n">display_manager</span><span class="o">.</span><span class="n">draw_page</span><span class="p">)</span>
+
+        <span class="c1"># 6. Connect to MQTT</span>
+        <span class="n">mqtt_client</span> <span class="o">=</span> <span class="n">mqtt</span><span class="o">.</span><span class="n">connect_mqtt</span><span class="p">(</span>
+            <span class="n">MQTT_CLIENT_ID</span><span class="p">,</span>
+            <span class="n">MQTT_BROKER</span><span class="p">,</span>
+            <span class="n">callback</span><span class="o">=</span><span class="n">device_manager</span><span class="o">.</span><span class="n">mqtt_callback</span><span class="p">,</span>
+            <span class="n">subscriptions</span><span class="o">=</span><span class="n">MQTT_SUBSCRIPTIONS</span>
+        <span class="p">)</span>
+        <span class="n">device_manager</span><span class="o">.</span><span class="n">set_mqtt_client</span><span class="p">(</span><span class="n">mqtt_client</span><span class="p">)</span>
+        
+        <span class="c1"># 7. Publish initial states and draw UI</span>
+        <span class="n">device_manager</span><span class="o">.</span><span class="n">publish_all_states</span><span class="p">()</span>
+        <span class="n">display_manager</span><span class="o">.</span><span class="n">draw_page</span><span class="p">()</span>
+        
+        <span class="c1"># 8. Evaluate auto logic on startup</span>
+        <span class="k">if</span> <span class="n">state_manager</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="s2">&quot;auto_mode&quot;</span><span class="p">):</span>
+            <span class="n">device_manager</span><span class="o">.</span><span class="n">evaluate_auto_logic</span><span class="p">()</span>
+
+        <span class="c1"># 9. Start all concurrent tasks</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Master: Starting all system tasks.&quot;</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span>
+            <span class="n">display_manager</span><span class="o">.</span><span class="n">standby_task</span><span class="p">(),</span>
+            <span class="n">display_manager</span><span class="o">.</span><span class="n">touch_loop</span><span class="p">(),</span>
+            <span class="n">web_server</span><span class="o">.</span><span class="n">run</span><span class="p">(),</span>
+            <span class="n">mqtt_check_loop</span><span class="p">(</span><span class="n">mqtt_client</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Master: A fatal error occurred: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># Consider a safe shutdown or reboot here</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">machine</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="mqtt_check_loop">
+<a class="viewcode-back" href="../../../modules.html#smarthome.master.main.mqtt_check_loop">[docs]</a>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">mqtt_check_loop</span><span class="p">(</span><span class="n">client</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Periodically checks for incoming MQTT messages.&quot;&quot;&quot;</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">client</span><span class="o">.</span><span class="n">check_msg</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Master: MQTT check_msg error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">. Reconnecting...&quot;</span><span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+            <span class="n">reset</span><span class="p">()</span> 
+        <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+
+
+<span class="c1"># Run the application</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+    <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Master: Application stopped by user.&quot;</span><span class="p">)</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="c1"># Clean up resources</span>
+        <span class="n">Pin</span><span class="p">(</span><span class="n">PIN_DISP_BL</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">OUT</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Alessandro Morelato, Daniel Poli, Matteo Scoropan, Seqbastiano Quaglio.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

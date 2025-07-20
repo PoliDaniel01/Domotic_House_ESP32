@@ -1,0 +1,345 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>smarthome.shutters.main &mdash; Smart Home Project 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Smart Home Project
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">Project Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Smart Home Project</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">smarthome.shutters.main</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for smarthome.shutters.main</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Main script for the ESP32 board controlling the window shutters.</span>
+
+<span class="sd">This script is responsible for:</span>
+<span class="sd">- Controlling a motor to move shutters up and down.</span>
+<span class="sd">- Handling physical button presses for manual control.</span>
+<span class="sd">- Using interrupts for button handling for maximum efficiency.</span>
+<span class="sd">- Using asynchronous tasks to manage motor run-time without blocking.</span>
+<span class="sd">- Communicating with the master board via MQTT to receive commands and report state.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># Standard library imports</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">uasyncio</span>
+
+<span class="c1"># MicroPython-specific imports</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">machine</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pin</span><span class="p">,</span> <span class="n">reset</span>
+
+<span class="c1"># Local application/library specific imports</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">smarthome.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">wifi</span><span class="p">,</span> <span class="n">mqtt</span>
+
+<span class="c1"># ==============================</span>
+<span class="c1"># CONFIGURATION</span>
+<span class="c1"># ==============================</span>
+<span class="c1"># --- Wi-Fi Configuration ---</span>
+<span class="n">WIFI_SSID</span> <span class="o">=</span> <span class="s2">&quot;YOUR_WIFI_SSID&quot;</span>
+<span class="n">WIFI_PASS</span> <span class="o">=</span> <span class="s2">&quot;YOUR_WIFI_PASSWORD&quot;</span>
+
+<span class="c1"># --- MQTT Configuration ---</span>
+<span class="n">MQTT_BROKER</span> <span class="o">=</span> <span class="s2">&quot;YOUR_MQTT_BROKER_IP&quot;</span>
+<span class="n">MQTT_CLIENT_ID</span> <span class="o">=</span> <span class="s2">&quot;esp32-shutters-slave&quot;</span>
+
+<span class="c1"># --- Hardware Pin Configuration ---</span>
+<span class="n">PIN_BTN_UP</span> <span class="o">=</span> <span class="n">Pin</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">IN</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">PULL_UP</span><span class="p">)</span>
+<span class="n">PIN_BTN_DOWN</span> <span class="o">=</span> <span class="n">Pin</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">IN</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">PULL_UP</span><span class="p">)</span>
+<span class="n">PIN_MOTOR_UP</span> <span class="o">=</span> <span class="n">Pin</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">OUT</span><span class="p">)</span>
+<span class="n">PIN_MOTOR_DOWN</span> <span class="o">=</span> <span class="n">Pin</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">OUT</span><span class="p">)</span>
+
+<span class="c1"># --- Application Settings ---</span>
+<span class="n">MOTOR_RUN_TIME_MS</span> <span class="o">=</span> <span class="mi">2000</span>  <span class="c1"># Milliseconds to run the motor for a full open/close</span>
+
+<span class="c1"># --- MQTT Topics ---</span>
+<span class="n">TOPIC_CMD</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;home/actuator/tapparella/set&quot;</span>
+<span class="n">TOPIC_STATE</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;home/actuator/tapparella/state&quot;</span> <span class="c1"># Reports open, closed, moving</span>
+<span class="n">MQTT_SUBSCRIPTIONS</span> <span class="o">=</span> <span class="p">[</span><span class="n">TOPIC_CMD</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="ShuttersManager">
+<a class="viewcode-back" href="../../../modules.html#smarthome.shutters.main.ShuttersManager">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ShuttersManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Manages the state and hardware for the window shutters.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes the ShuttersManager.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_irq_time</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># State machine: &#39;open&#39;, &#39;closed&#39;, &#39;moving_up&#39;, &#39;moving_down&#39;, &#39;unknown&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="s2">&quot;unknown&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">motor_task</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># To hold the reference to the running motor task</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_hardware</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_setup_hardware</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes GPIO pins for motors and buttons.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">motor_up</span> <span class="o">=</span> <span class="n">Pin</span><span class="p">(</span><span class="n">PIN_MOTOR_UP</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">OUT</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">motor_down</span> <span class="o">=</span> <span class="n">Pin</span><span class="p">(</span><span class="n">PIN_MOTOR_DOWN</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">OUT</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># Attach interrupts for buttons</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btn_up</span> <span class="o">=</span> <span class="n">Pin</span><span class="p">(</span><span class="n">PIN_BTN_UP</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">IN</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">PULL_UP</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btn_down</span> <span class="o">=</span> <span class="n">Pin</span><span class="p">(</span><span class="n">PIN_BTN_DOWN</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">IN</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">PULL_UP</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btn_up</span><span class="o">.</span><span class="n">irq</span><span class="p">(</span><span class="n">trigger</span><span class="o">=</span><span class="n">Pin</span><span class="o">.</span><span class="n">IRQ_FALLING</span><span class="p">,</span> <span class="n">handler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_button_press</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btn_down</span><span class="o">.</span><span class="n">irq</span><span class="p">(</span><span class="n">trigger</span><span class="o">=</span><span class="n">Pin</span><span class="o">.</span><span class="n">IRQ_FALLING</span><span class="p">,</span> <span class="n">handler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_button_press</span><span class="p">)</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Shutters: Hardware pins initialized and interrupts attached.&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ShuttersManager.set_mqtt_client">
+<a class="viewcode-back" href="../../../modules.html#smarthome.shutters.main.ShuttersManager.set_mqtt_client">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_mqtt_client</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the MQTT client instance after it has been connected.</span>
+
+<span class="sd">        :param client: The connected MQTT client.</span>
+<span class="sd">        :type client: umqtt.simple.MQTTClient</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span> <span class="o">=</span> <span class="n">client</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_publish_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Publishes the shutter&#39;s current state to MQTT.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">TOPIC_STATE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">encode</span><span class="p">(),</span> <span class="n">retain</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Shutters: → MQTT: Published state: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Shutters: MQTT publish error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ShuttersManager.move_shutter">
+<a class="viewcode-back" href="../../../modules.html#smarthome.shutters.main.ShuttersManager.move_shutter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">move_shutter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">direction</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initiates the shutter movement by creating an asynchronous task.</span>
+
+<span class="sd">        :param direction: The direction to move (&#39;up&#39; or &#39;down&#39;).</span>
+<span class="sd">        :type direction: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Prevent starting a new move if one is already in progress</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">motor_task</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Shutters: Motor is already running. Ignoring command.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Prevent moving if already in the target state</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">direction</span> <span class="o">==</span> <span class="s2">&quot;up&quot;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="s2">&quot;open&quot;</span><span class="p">)</span> <span class="ow">or</span> \
+           <span class="p">(</span><span class="n">direction</span> <span class="o">==</span> <span class="s2">&quot;down&quot;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="s2">&quot;closed&quot;</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Shutters: Shutter is already </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="si">}</span><span class="s2">. Ignoring command.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Shutters: Starting shutter move: </span><span class="si">{</span><span class="n">direction</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">motor_task</span> <span class="o">=</span> <span class="n">uasyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_run_motor</span><span class="p">(</span><span class="n">direction</span><span class="p">))</span></div>
+
+
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">_run_motor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">direction</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Asynchronous task to run the motor for a fixed duration.</span>
+<span class="sd">        This function should not be called directly.</span>
+
+<span class="sd">        :param direction: The direction of movement (&#39;up&#39; or &#39;down&#39;).</span>
+<span class="sd">        :type direction: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># 1. Set state to moving and publish</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="s2">&quot;moving_up&quot;</span> <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s2">&quot;up&quot;</span> <span class="k">else</span> <span class="s2">&quot;moving_down&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_publish_state</span><span class="p">()</span>
+
+        <span class="c1"># 2. Activate the correct motor</span>
+        <span class="n">motor_pin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">motor_up</span> <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s2">&quot;up&quot;</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">motor_down</span>
+        <span class="n">motor_pin</span><span class="o">.</span><span class="n">on</span><span class="p">()</span>
+
+        <span class="c1"># 3. Wait for the configured run time (non-blocking)</span>
+        <span class="k">await</span> <span class="n">uasyncio</span><span class="o">.</span><span class="n">sleep_ms</span><span class="p">(</span><span class="n">MOTOR_RUN_TIME_MS</span><span class="p">)</span>
+
+        <span class="c1"># 4. Stop the motor</span>
+        <span class="n">motor_pin</span><span class="o">.</span><span class="n">off</span><span class="p">()</span>
+
+        <span class="c1"># 5. Set the final state and publish</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="s2">&quot;open&quot;</span> <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s2">&quot;up&quot;</span> <span class="k">else</span> <span class="s2">&quot;closed&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_publish_state</span><span class="p">()</span>
+
+        <span class="c1"># 6. Clear the task reference to allow new moves</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">motor_task</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Shutters: Shutter move &#39;</span><span class="si">{</span><span class="n">direction</span><span class="si">}</span><span class="s2">&#39; complete.&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ShuttersManager.mqtt_callback">
+<a class="viewcode-back" href="../../../modules.html#smarthome.shutters.main.ShuttersManager.mqtt_callback">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mqtt_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Callback for handling incoming MQTT messages.</span>
+
+<span class="sd">        :param topic: The topic the message was received on.</span>
+<span class="sd">        :type topic: bytes</span>
+<span class="sd">        :param msg: The message payload.</span>
+<span class="sd">        :type msg: bytes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">topic</span> <span class="o">==</span> <span class="n">TOPIC_CMD</span><span class="p">:</span>
+            <span class="n">direction</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Shutters: MQTT command received: </span><span class="si">{</span><span class="n">direction</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">direction</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;up&quot;</span><span class="p">,</span> <span class="s2">&quot;down&quot;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">move_shutter</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ShuttersManager.handle_button_press">
+<a class="viewcode-back" href="../../../modules.html#smarthome.shutters.main.ShuttersManager.handle_button_press">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">handle_button_press</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pin</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ISR for the up/down buttons.</span>
+
+<span class="sd">        :param pin: The Pin object that triggered the interrupt.</span>
+<span class="sd">        :type pin: machine.Pin</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">current_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">ticks_ms</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">time</span><span class="o">.</span><span class="n">ticks_diff</span><span class="p">(</span><span class="n">current_time</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_irq_time</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">500</span><span class="p">:</span> <span class="c1"># 500ms debounce</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_irq_time</span> <span class="o">=</span> <span class="n">current_time</span>
+
+        <span class="k">if</span> <span class="n">pin</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">btn_up</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">move_shutter</span><span class="p">(</span><span class="s2">&quot;up&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">pin</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">btn_down</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">move_shutter</span><span class="p">(</span><span class="s2">&quot;down&quot;</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="mqtt_loop">
+<a class="viewcode-back" href="../../../modules.html#smarthome.shutters.main.mqtt_loop">[docs]</a>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">mqtt_loop</span><span class="p">(</span><span class="n">client</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Periodically checks for incoming MQTT messages.&quot;&quot;&quot;</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">client</span><span class="o">.</span><span class="n">check_msg</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Shutters: MQTT check_msg error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">. Resetting...&quot;</span><span class="p">)</span>
+            <span class="k">await</span> <span class="n">uasyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+            <span class="n">reset</span><span class="p">()</span>
+        <span class="k">await</span> <span class="n">uasyncio</span><span class="o">.</span><span class="n">sleep_ms</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../../modules.html#smarthome.shutters.main.main">[docs]</a>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The main asynchronous entry point of the application.&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">manager</span> <span class="o">=</span> <span class="n">ShuttersManager</span><span class="p">()</span>
+        <span class="n">wifi</span><span class="o">.</span><span class="n">connect_wifi</span><span class="p">(</span><span class="n">WIFI_SSID</span><span class="p">,</span> <span class="n">WIFI_PASS</span><span class="p">)</span>
+        <span class="n">mqtt_client</span> <span class="o">=</span> <span class="n">mqtt</span><span class="o">.</span><span class="n">connect_mqtt</span><span class="p">(</span>
+            <span class="n">MQTT_CLIENT_ID</span><span class="p">,</span>
+            <span class="n">MQTT_BROKER</span><span class="p">,</span>
+            <span class="n">callback</span><span class="o">=</span><span class="n">manager</span><span class="o">.</span><span class="n">mqtt_callback</span><span class="p">,</span>
+            <span class="n">subscriptions</span><span class="o">=</span><span class="n">MQTT_SUBSCRIPTIONS</span>
+        <span class="p">)</span>
+        <span class="n">manager</span><span class="o">.</span><span class="n">set_mqtt_client</span><span class="p">(</span><span class="n">mqtt_client</span><span class="p">)</span>
+        
+        <span class="c1"># Report initial state as unknown, master can command it to a known state</span>
+        <span class="n">manager</span><span class="o">.</span><span class="n">_publish_state</span><span class="p">()</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Shutters: Application running. Starting tasks.&quot;</span><span class="p">)</span>
+        <span class="c1"># The only background task needed is the MQTT loop.</span>
+        <span class="c1"># Motor control is handled by tasks created on-demand.</span>
+        <span class="k">await</span> <span class="n">mqtt_loop</span><span class="p">(</span><span class="n">mqtt_client</span><span class="p">)</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Shutters: A fatal error occurred in main: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">uasyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">reset</span><span class="p">()</span></div>
+
+
+<span class="c1"># Run the application</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">uasyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+    <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Shutters: Application stopped by user.&quot;</span><span class="p">)</span>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Alessandro Morelato, Daniel Poli, Matteo Scoropan, Seqbastiano Quaglio.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

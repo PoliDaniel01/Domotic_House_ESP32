@@ -1,0 +1,870 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project Modules &mdash; Smart Home Project 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Smart Home Project documentation" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Smart Home Project
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Project Modules</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-smarthome.master.main">Master Board</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#smarthome.master.main.DeviceManager"><code class="docutils literal notranslate"><span class="pre">DeviceManager</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.master.main.DeviceManager.evaluate_auto_logic"><code class="docutils literal notranslate"><span class="pre">DeviceManager.evaluate_auto_logic()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.master.main.DeviceManager.mqtt_callback"><code class="docutils literal notranslate"><span class="pre">DeviceManager.mqtt_callback()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.master.main.DeviceManager.pubblish_shutter_command"><code class="docutils literal notranslate"><span class="pre">DeviceManager.pubblish_shutter_command()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.master.main.DeviceManager.publish_all_states"><code class="docutils literal notranslate"><span class="pre">DeviceManager.publish_all_states()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.master.main.DeviceManager.set_device_state"><code class="docutils literal notranslate"><span class="pre">DeviceManager.set_device_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.master.main.DeviceManager.set_mqtt_client"><code class="docutils literal notranslate"><span class="pre">DeviceManager.set_mqtt_client()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.master.main.DeviceManager.set_ui_update_callback"><code class="docutils literal notranslate"><span class="pre">DeviceManager.set_ui_update_callback()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#smarthome.master.main.StateManager"><code class="docutils literal notranslate"><span class="pre">StateManager</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.master.main.StateManager.get_state"><code class="docutils literal notranslate"><span class="pre">StateManager.get_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.master.main.StateManager.save_states"><code class="docutils literal notranslate"><span class="pre">StateManager.save_states()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.master.main.StateManager.set_state"><code class="docutils literal notranslate"><span class="pre">StateManager.set_state()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#smarthome.master.main.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#smarthome.master.main.mqtt_check_loop"><code class="docutils literal notranslate"><span class="pre">mqtt_check_loop()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-smarthome.common.wifi">Common Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#smarthome.common.wifi.connect_wifi"><code class="docutils literal notranslate"><span class="pre">connect_wifi()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#smarthome.common.mqtt.connect_mqtt"><code class="docutils literal notranslate"><span class="pre">connect_mqtt()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#smarthome.common.display.DisplayManager"><code class="docutils literal notranslate"><span class="pre">DisplayManager</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.common.display.DisplayManager.check_touch"><code class="docutils literal notranslate"><span class="pre">DisplayManager.check_touch()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.common.display.DisplayManager.draw_page"><code class="docutils literal notranslate"><span class="pre">DisplayManager.draw_page()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.common.display.DisplayManager.set_backlight"><code class="docutils literal notranslate"><span class="pre">DisplayManager.set_backlight()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.common.display.DisplayManager.standby_task"><code class="docutils literal notranslate"><span class="pre">DisplayManager.standby_task()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.common.display.DisplayManager.touch_loop"><code class="docutils literal notranslate"><span class="pre">DisplayManager.touch_loop()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#smarthome.common.webserver.WebServer"><code class="docutils literal notranslate"><span class="pre">WebServer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.common.webserver.WebServer.climate_control"><code class="docutils literal notranslate"><span class="pre">WebServer.climate_control()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.common.webserver.WebServer.index"><code class="docutils literal notranslate"><span class="pre">WebServer.index()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.common.webserver.WebServer.run"><code class="docutils literal notranslate"><span class="pre">WebServer.run()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.common.webserver.WebServer.shutter_control"><code class="docutils literal notranslate"><span class="pre">WebServer.shutter_control()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.common.webserver.WebServer.update"><code class="docutils literal notranslate"><span class="pre">WebServer.update()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-smarthome.lights.main">Lights Slave</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#smarthome.lights.main.LightsManager"><code class="docutils literal notranslate"><span class="pre">LightsManager</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.lights.main.LightsManager.handle_button_press"><code class="docutils literal notranslate"><span class="pre">LightsManager.handle_button_press()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.lights.main.LightsManager.mqtt_callback"><code class="docutils literal notranslate"><span class="pre">LightsManager.mqtt_callback()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.lights.main.LightsManager.publish_all_states"><code class="docutils literal notranslate"><span class="pre">LightsManager.publish_all_states()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.lights.main.LightsManager.publish_state"><code class="docutils literal notranslate"><span class="pre">LightsManager.publish_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.lights.main.LightsManager.set_light_state"><code class="docutils literal notranslate"><span class="pre">LightsManager.set_light_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.lights.main.LightsManager.set_mqtt_client"><code class="docutils literal notranslate"><span class="pre">LightsManager.set_mqtt_client()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#smarthome.lights.main.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-smarthome.climate.main">Climate Slave</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#smarthome.climate.main.ClimateManager"><code class="docutils literal notranslate"><span class="pre">ClimateManager</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.climate.main.ClimateManager.evaluate_auto_logic"><code class="docutils literal notranslate"><span class="pre">ClimateManager.evaluate_auto_logic()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.climate.main.ClimateManager.handle_button_press"><code class="docutils literal notranslate"><span class="pre">ClimateManager.handle_button_press()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.climate.main.ClimateManager.mqtt_callback"><code class="docutils literal notranslate"><span class="pre">ClimateManager.mqtt_callback()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.climate.main.ClimateManager.publish_initial_states"><code class="docutils literal notranslate"><span class="pre">ClimateManager.publish_initial_states()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.climate.main.ClimateManager.read_and_publish_temperature"><code class="docutils literal notranslate"><span class="pre">ClimateManager.read_and_publish_temperature()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.climate.main.ClimateManager.set_conditioning"><code class="docutils literal notranslate"><span class="pre">ClimateManager.set_conditioning()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.climate.main.ClimateManager.set_heating"><code class="docutils literal notranslate"><span class="pre">ClimateManager.set_heating()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.climate.main.ClimateManager.set_mqtt_client"><code class="docutils literal notranslate"><span class="pre">ClimateManager.set_mqtt_client()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#smarthome.climate.main.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#smarthome.climate.main.mqtt_loop"><code class="docutils literal notranslate"><span class="pre">mqtt_loop()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#smarthome.climate.main.temperature_loop"><code class="docutils literal notranslate"><span class="pre">temperature_loop()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-smarthome.alarm.main">Alarm Slave</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#smarthome.alarm.main.AlarmManager"><code class="docutils literal notranslate"><span class="pre">AlarmManager</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.alarm.main.AlarmManager.arm_system"><code class="docutils literal notranslate"><span class="pre">AlarmManager.arm_system()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.alarm.main.AlarmManager.disarm_system"><code class="docutils literal notranslate"><span class="pre">AlarmManager.disarm_system()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.alarm.main.AlarmManager.handle_reset_press"><code class="docutils literal notranslate"><span class="pre">AlarmManager.handle_reset_press()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.alarm.main.AlarmManager.handle_sensor_trigger"><code class="docutils literal notranslate"><span class="pre">AlarmManager.handle_sensor_trigger()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.alarm.main.AlarmManager.mqtt_callback"><code class="docutils literal notranslate"><span class="pre">AlarmManager.mqtt_callback()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.alarm.main.AlarmManager.set_mqtt_client"><code class="docutils literal notranslate"><span class="pre">AlarmManager.set_mqtt_client()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.alarm.main.AlarmManager.trigger_alarm"><code class="docutils literal notranslate"><span class="pre">AlarmManager.trigger_alarm()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#smarthome.alarm.main.led_blink_task"><code class="docutils literal notranslate"><span class="pre">led_blink_task()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#smarthome.alarm.main.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#smarthome.alarm.main.mqtt_loop"><code class="docutils literal notranslate"><span class="pre">mqtt_loop()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-smarthome.shutters.main">Shutters Slave</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#smarthome.shutters.main.ShuttersManager"><code class="docutils literal notranslate"><span class="pre">ShuttersManager</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.shutters.main.ShuttersManager.handle_button_press"><code class="docutils literal notranslate"><span class="pre">ShuttersManager.handle_button_press()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.shutters.main.ShuttersManager.move_shutter"><code class="docutils literal notranslate"><span class="pre">ShuttersManager.move_shutter()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.shutters.main.ShuttersManager.mqtt_callback"><code class="docutils literal notranslate"><span class="pre">ShuttersManager.mqtt_callback()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smarthome.shutters.main.ShuttersManager.set_mqtt_client"><code class="docutils literal notranslate"><span class="pre">ShuttersManager.set_mqtt_client()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#smarthome.shutters.main.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#smarthome.shutters.main.mqtt_loop"><code class="docutils literal notranslate"><span class="pre">mqtt_loop()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Smart Home Project</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Project Modules</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/modules.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="project-modules">
+<h1>Project Modules<a class="headerlink" href="#project-modules" title="Link to this heading"></a></h1>
+<p>This section details all the modules within the <code class="docutils literal notranslate"><span class="pre">smarthome</span></code> package.</p>
+<section id="module-smarthome.master.main">
+<span id="master-board"></span><h2>Master Board<a class="headerlink" href="#module-smarthome.master.main" title="Link to this heading"></a></h2>
+<p>Main script for the master ESP32 board in the smart home system.</p>
+<p>This script is responsible for:
+- Driving the ST7789 display and handling XPT2046 touch input.
+- Providing a user interface to control various smart home devices.
+- Running a Microdot web server for remote control via Wi-Fi.
+- Communicating with other ESP32 boards (slaves) via MQTT.
+- Managing device states and persisting them to a file.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="smarthome.master.main.DeviceManager">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smarthome.master.main.</span></span><span class="sig-name descname"><span class="pre">DeviceManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_manager</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mqtt_command_topics</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/master/main.html#DeviceManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.master.main.DeviceManager" title="Link to this definition"></a></dt>
+<dd><p>Manages device logic, state changes, and MQTT communication.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.master.main.DeviceManager.evaluate_auto_logic">
+<span class="sig-name descname"><span class="pre">evaluate_auto_logic</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/master/main.html#DeviceManager.evaluate_auto_logic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.master.main.DeviceManager.evaluate_auto_logic" title="Link to this definition"></a></dt>
+<dd><p>Evaluates and acts on the climate auto mode logic.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.master.main.DeviceManager.mqtt_callback">
+<span class="sig-name descname"><span class="pre">mqtt_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/master/main.html#DeviceManager.mqtt_callback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.master.main.DeviceManager.mqtt_callback" title="Link to this definition"></a></dt>
+<dd><p>Callback function for handling incoming MQTT messages.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topic</strong> (<em>bytes</em>) – The topic the message was received on.</p></li>
+<li><p><strong>msg</strong> (<em>bytes</em>) – The message payload.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.master.main.DeviceManager.pubblish_shutter_command">
+<span class="sig-name descname"><span class="pre">pubblish_shutter_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/master/main.html#DeviceManager.pubblish_shutter_command"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.master.main.DeviceManager.pubblish_shutter_command" title="Link to this definition"></a></dt>
+<dd><p>Publishes a shutter command (up/down)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>direction</strong> (<em>str</em>) – “up” or “down”</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.master.main.DeviceManager.publish_all_states">
+<span class="sig-name descname"><span class="pre">publish_all_states</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/master/main.html#DeviceManager.publish_all_states"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.master.main.DeviceManager.publish_all_states" title="Link to this definition"></a></dt>
+<dd><p>Publishes the current state of all devices to MQTT.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.master.main.DeviceManager.set_device_state">
+<span class="sig-name descname"><span class="pre">set_device_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/master/main.html#DeviceManager.set_device_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.master.main.DeviceManager.set_device_state" title="Link to this definition"></a></dt>
+<dd><p>Sets the state of a device and publishes the change via MQTT.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – The name of the device (e.g., “soggiorno”).</p></li>
+<li><p><strong>new_state</strong> (<em>bool</em>) – The new state (True for ON, False for OFF).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.master.main.DeviceManager.set_mqtt_client">
+<span class="sig-name descname"><span class="pre">set_mqtt_client</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/master/main.html#DeviceManager.set_mqtt_client"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.master.main.DeviceManager.set_mqtt_client" title="Link to this definition"></a></dt>
+<dd><p>Sets the MQTT client instance after it has been connected.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>client</strong> (<em>MQTTClient</em>) – The connected MQTT client.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.master.main.DeviceManager.set_ui_update_callback">
+<span class="sig-name descname"><span class="pre">set_ui_update_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">callback</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/master/main.html#DeviceManager.set_ui_update_callback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.master.main.DeviceManager.set_ui_update_callback" title="Link to this definition"></a></dt>
+<dd><p>Sets a callback function to notify UI of state changes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>callback</strong> – Function to call when UI should be updated</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="smarthome.master.main.StateManager">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smarthome.master.main.</span></span><span class="sig-name descname"><span class="pre">StateManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/master/main.html#StateManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.master.main.StateManager" title="Link to this definition"></a></dt>
+<dd><p>Manages the state of all devices and application settings.</p>
+<p>This class handles loading states from and saving states to a JSON file,
+ensuring persistence across reboots.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.master.main.StateManager.get_state">
+<span class="sig-name descname"><span class="pre">get_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/master/main.html#StateManager.get_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.master.main.StateManager.get_state" title="Link to this definition"></a></dt>
+<dd><p>Gets the state of a specific device or setting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>str</em>) – The key for the state to retrieve.</p></li>
+<li><p><strong>default</strong> – The default value to return if the key is not found.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The value of the state.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.master.main.StateManager.save_states">
+<span class="sig-name descname"><span class="pre">save_states</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/master/main.html#StateManager.save_states"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.master.main.StateManager.save_states" title="Link to this definition"></a></dt>
+<dd><p>Saves the current device states to the JSON file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.master.main.StateManager.set_state">
+<span class="sig-name descname"><span class="pre">set_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/master/main.html#StateManager.set_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.master.main.StateManager.set_state" title="Link to this definition"></a></dt>
+<dd><p>Sets the state of a device or setting.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>str</em>) – The key for the state to set.</p></li>
+<li><p><strong>value</strong> – The new value for the state.</p></li>
+<li><p><strong>save</strong> (<em>bool</em>) – Whether to immediately save the states to the file.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="smarthome.master.main.main">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smarthome.master.main.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/master/main.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.master.main.main" title="Link to this definition"></a></dt>
+<dd><p>The main asynchronous entry point of the application.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="smarthome.master.main.mqtt_check_loop">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smarthome.master.main.</span></span><span class="sig-name descname"><span class="pre">mqtt_check_loop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/master/main.html#mqtt_check_loop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.master.main.mqtt_check_loop" title="Link to this definition"></a></dt>
+<dd><p>Periodically checks for incoming MQTT messages.</p>
+</dd></dl>
+
+</section>
+<section id="module-smarthome.common.wifi">
+<span id="common-utilities"></span><h2>Common Utilities<a class="headerlink" href="#module-smarthome.common.wifi" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="smarthome.common.wifi.connect_wifi">
+<span class="sig-prename descclassname"><span class="pre">smarthome.common.wifi.</span></span><span class="sig-name descname"><span class="pre">connect_wifi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ssid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/common/wifi.html#connect_wifi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.common.wifi.connect_wifi" title="Link to this definition"></a></dt>
+<dd><p>Connects the device to a Wi-Fi network.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ssid</strong> (<em>str</em>) – The SSID of the Wi-Fi network.</p></li>
+<li><p><strong>password</strong> (<em>str</em>) – The password of the Wi-Fi network.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>RuntimeError</strong> – If the Wi-Fi connection fails.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function" id="module-smarthome.common.mqtt">
+<dt class="sig sig-object py" id="smarthome.common.mqtt.connect_mqtt">
+<span class="sig-prename descclassname"><span class="pre">smarthome.common.mqtt.</span></span><span class="sig-name descname"><span class="pre">connect_mqtt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">broker</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subscriptions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/common/mqtt.html#connect_mqtt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.common.mqtt.connect_mqtt" title="Link to this definition"></a></dt>
+<dd><p>Connects to an MQTT broker and subscribes to topics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>client_id</strong> (<em>str</em>) – The unique client ID for the MQTT connection.</p></li>
+<li><p><strong>broker</strong> (<em>str</em>) – The address of the MQTT broker.</p></li>
+<li><p><strong>callback</strong> (<em>function</em>) – The function to call when a message is received.</p></li>
+<li><p><strong>subscriptions</strong> (<em>list</em><em>, </em><em>optional</em>) – A list of topics to subscribe to.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The MQTT client object.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>MQTTClient</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p id="module-smarthome.common.display">DisplayManager class, deals with touch-display</p>
+<p>Code in this file is responsible for:
+- Driving the ST7789 display and handling XPT2046 touch input.
+- Providing a user interface to control various smart home devices.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="smarthome.common.display.DisplayManager">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smarthome.common.display.</span></span><span class="sig-name descname"><span class="pre">DisplayManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_manager</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device_manager</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">standby_timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/common/display.html#DisplayManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.common.display.DisplayManager" title="Link to this definition"></a></dt>
+<dd><p>Handles all display rendering and touch input processing.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.common.display.DisplayManager.check_touch">
+<span class="sig-name descname"><span class="pre">check_touch</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/common/display.html#DisplayManager.check_touch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.common.display.DisplayManager.check_touch" title="Link to this definition"></a></dt>
+<dd><p>Checks for touch input and handles it based on the current page.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.common.display.DisplayManager.draw_page">
+<span class="sig-name descname"><span class="pre">draw_page</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/common/display.html#DisplayManager.draw_page"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.common.display.DisplayManager.draw_page" title="Link to this definition"></a></dt>
+<dd><p>Clears the screen and draws the current page.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.common.display.DisplayManager.set_backlight">
+<span class="sig-name descname"><span class="pre">set_backlight</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">on</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/common/display.html#DisplayManager.set_backlight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.common.display.DisplayManager.set_backlight" title="Link to this definition"></a></dt>
+<dd><p>Controls the display backlight.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>on</strong> (<em>bool</em>) – True to turn the backlight on, False to turn it off.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.common.display.DisplayManager.standby_task">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">standby_task</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/common/display.html#DisplayManager.standby_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.common.display.DisplayManager.standby_task" title="Link to this definition"></a></dt>
+<dd><p>Asynchronous task to manage display standby mode.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.common.display.DisplayManager.touch_loop">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">touch_loop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/common/display.html#DisplayManager.touch_loop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.common.display.DisplayManager.touch_loop" title="Link to this definition"></a></dt>
+<dd><p>Asynchronous task to continuously check for touch input.</p>
+</dd></dl>
+
+</dd></dl>
+
+<p id="module-smarthome.common.html_templates">Contains all HTML, CSS, and JavaScript templates for the Microdot web server.</p>
+<p id="module-smarthome.common.webserver">Web Server class, contains code to run a web server with microdot</p>
+<p>Code in this file is responsible for:
+- Running a Microdot web server for remote control via Wi-Fi.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="smarthome.common.webserver.WebServer">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smarthome.common.webserver.</span></span><span class="sig-name descname"><span class="pre">WebServer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_manager</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device_manager</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/common/webserver.html#WebServer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.common.webserver.WebServer" title="Link to this definition"></a></dt>
+<dd><p>A Microdot web server for remote control, using dynamic templating.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.common.webserver.WebServer.climate_control">
+<span class="sig-name descname"><span class="pre">climate_control</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#smarthome.common.webserver.WebServer.climate_control" title="Link to this definition"></a></dt>
+<dd><p>Handles actions related to the climate control card.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.common.webserver.WebServer.index">
+<span class="sig-name descname"><span class="pre">index</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#smarthome.common.webserver.WebServer.index" title="Link to this definition"></a></dt>
+<dd><p>Serves the main HTML page, dynamically filling it with content.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.common.webserver.WebServer.run">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/common/webserver.html#WebServer.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.common.webserver.WebServer.run" title="Link to this definition"></a></dt>
+<dd><p>Starts the web server.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.common.webserver.WebServer.shutter_control">
+<span class="sig-name descname"><span class="pre">shutter_control</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#smarthome.common.webserver.WebServer.shutter_control" title="Link to this definition"></a></dt>
+<dd><p>Handles actions for the shutters.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.common.webserver.WebServer.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#smarthome.common.webserver.WebServer.update" title="Link to this definition"></a></dt>
+<dd><p>Handles requests to update a device’s state (lights, alarm).</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-smarthome.lights.main">
+<span id="lights-slave"></span><h2>Lights Slave<a class="headerlink" href="#module-smarthome.lights.main" title="Link to this heading"></a></h2>
+<p>Main script for the ESP32 board controlling the lights.</p>
+<p>This script is responsible for:
+- Controlling multiple lights connected to its GPIO pins.
+- Handling physical button presses to toggle the lights.
+- Connecting to Wi-Fi and an MQTT broker to receive commands and report state.
+- Using interrupts for button handling to be more efficient than polling.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="smarthome.lights.main.LightsManager">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smarthome.lights.main.</span></span><span class="sig-name descname"><span class="pre">LightsManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/lights/main.html#LightsManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.lights.main.LightsManager" title="Link to this definition"></a></dt>
+<dd><p>Manages the state and hardware for all lights connected to this board.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.lights.main.LightsManager.handle_button_press">
+<span class="sig-name descname"><span class="pre">handle_button_press</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pin</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/lights/main.html#LightsManager.handle_button_press"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.lights.main.LightsManager.handle_button_press" title="Link to this definition"></a></dt>
+<dd><p>Interrupt Service Routine (ISR) for button presses.</p>
+<p>This function is called by the hardware when a button pin goes from high to low.
+It includes a debounce mechanism to prevent multiple triggers from a single press.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pin</strong> (<em>machine.Pin</em>) – The Pin object that triggered the interrupt.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.lights.main.LightsManager.mqtt_callback">
+<span class="sig-name descname"><span class="pre">mqtt_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/lights/main.html#LightsManager.mqtt_callback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.lights.main.LightsManager.mqtt_callback" title="Link to this definition"></a></dt>
+<dd><p>Callback function for handling incoming MQTT messages.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topic</strong> (<em>bytes</em>) – The topic the message was received on.</p></li>
+<li><p><strong>msg</strong> (<em>bytes</em>) – The message payload.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.lights.main.LightsManager.publish_all_states">
+<span class="sig-name descname"><span class="pre">publish_all_states</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/lights/main.html#LightsManager.publish_all_states"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.lights.main.LightsManager.publish_all_states" title="Link to this definition"></a></dt>
+<dd><p>Publishes the current state of all lights to MQTT.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.lights.main.LightsManager.publish_state">
+<span class="sig-name descname"><span class="pre">publish_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/lights/main.html#LightsManager.publish_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.lights.main.LightsManager.publish_state" title="Link to this definition"></a></dt>
+<dd><p>Publishes the current state of a specific light to its MQTT state topic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – The name of the light whose state will be published.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.lights.main.LightsManager.set_light_state">
+<span class="sig-name descname"><span class="pre">set_light_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mqtt'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/lights/main.html#LightsManager.set_light_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.lights.main.LightsManager.set_light_state" title="Link to this definition"></a></dt>
+<dd><p>Sets the state of a light and updates its physical LED.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – The name of the light to change.</p></li>
+<li><p><strong>new_state</strong> (<em>bool</em>) – The new state (True for ON, False for OFF).</p></li>
+<li><p><strong>source</strong> (<em>str</em>) – The origin of the state change (‘mqtt’ or ‘button’).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.lights.main.LightsManager.set_mqtt_client">
+<span class="sig-name descname"><span class="pre">set_mqtt_client</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/lights/main.html#LightsManager.set_mqtt_client"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.lights.main.LightsManager.set_mqtt_client" title="Link to this definition"></a></dt>
+<dd><p>Sets the MQTT client instance after it has been connected.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>client</strong> (<em>umqtt.simple.MQTTClient</em>) – The connected MQTT client.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="smarthome.lights.main.main">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smarthome.lights.main.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/lights/main.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.lights.main.main" title="Link to this definition"></a></dt>
+<dd><p>The main asynchronous entry point of the application.</p>
+</dd></dl>
+
+</section>
+<section id="module-smarthome.climate.main">
+<span id="climate-slave"></span><h2>Climate Slave<a class="headerlink" href="#module-smarthome.climate.main" title="Link to this heading"></a></h2>
+<p>Main script for the ESP32 board managing climate control.</p>
+<p>This script is responsible for:
+- Reading temperature data from a BME680 sensor.
+- Controlling heating and air conditioning relays.
+- Handling physical button presses for manual control.
+- Implementing an “auto mode” with hysteresis to maintain a desired temperature.
+- Communicating with the master board via MQTT for commands and state reporting.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="smarthome.climate.main.ClimateManager">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smarthome.climate.main.</span></span><span class="sig-name descname"><span class="pre">ClimateManager</span></span><a class="reference internal" href="_modules/smarthome/climate/main.html#ClimateManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.climate.main.ClimateManager" title="Link to this definition"></a></dt>
+<dd><p>Manages the climate control system, including sensor, relays, and logic.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.climate.main.ClimateManager.evaluate_auto_logic">
+<span class="sig-name descname"><span class="pre">evaluate_auto_logic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">current_temp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/climate/main.html#ClimateManager.evaluate_auto_logic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.climate.main.ClimateManager.evaluate_auto_logic" title="Link to this definition"></a></dt>
+<dd><p>Evaluates and acts on the climate auto mode logic based on temperature.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>current_temp</strong> (<em>float</em>) – The current temperature reading.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.climate.main.ClimateManager.handle_button_press">
+<span class="sig-name descname"><span class="pre">handle_button_press</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pin</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/climate/main.html#ClimateManager.handle_button_press"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.climate.main.ClimateManager.handle_button_press" title="Link to this definition"></a></dt>
+<dd><p>Interrupt Service Routine (ISR) for button presses.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pin</strong> (<em>machine.Pin</em>) – The Pin object that triggered the interrupt.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.climate.main.ClimateManager.mqtt_callback">
+<span class="sig-name descname"><span class="pre">mqtt_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/climate/main.html#ClimateManager.mqtt_callback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.climate.main.ClimateManager.mqtt_callback" title="Link to this definition"></a></dt>
+<dd><p>Callback function for handling incoming MQTT messages.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topic</strong> (<em>bytes</em>) – The topic the message was received on.</p></li>
+<li><p><strong>msg</strong> (<em>bytes</em>) – The message payload.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.climate.main.ClimateManager.publish_initial_states">
+<span class="sig-name descname"><span class="pre">publish_initial_states</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/climate/main.html#ClimateManager.publish_initial_states"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.climate.main.ClimateManager.publish_initial_states" title="Link to this definition"></a></dt>
+<dd><p>Publishes the initial state of all controlled devices.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.climate.main.ClimateManager.read_and_publish_temperature">
+<span class="sig-name descname"><span class="pre">read_and_publish_temperature</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/climate/main.html#ClimateManager.read_and_publish_temperature"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.climate.main.ClimateManager.read_and_publish_temperature" title="Link to this definition"></a></dt>
+<dd><p>Reads temperature from the sensor and publishes it to MQTT.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.climate.main.ClimateManager.set_conditioning">
+<span class="sig-name descname"><span class="pre">set_conditioning</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mqtt'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/climate/main.html#ClimateManager.set_conditioning"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.climate.main.ClimateManager.set_conditioning" title="Link to this definition"></a></dt>
+<dd><p>Controls the AC relay. Ensures heating is off if AC is turned on.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_state</strong> (<em>bool</em>) – The new state for the AC (True for ON, False for OFF).</p></li>
+<li><p><strong>source</strong> (<em>str</em>) – The origin of the command (‘mqtt’, ‘button’, ‘auto’).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.climate.main.ClimateManager.set_heating">
+<span class="sig-name descname"><span class="pre">set_heating</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mqtt'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/climate/main.html#ClimateManager.set_heating"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.climate.main.ClimateManager.set_heating" title="Link to this definition"></a></dt>
+<dd><p>Controls the heating relay. Ensures AC is off if heating is turned on.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_state</strong> (<em>bool</em>) – The new state for the heating (True for ON, False for OFF).</p></li>
+<li><p><strong>source</strong> (<em>str</em>) – The origin of the command (‘mqtt’, ‘button’, ‘auto’).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.climate.main.ClimateManager.set_mqtt_client">
+<span class="sig-name descname"><span class="pre">set_mqtt_client</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/climate/main.html#ClimateManager.set_mqtt_client"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.climate.main.ClimateManager.set_mqtt_client" title="Link to this definition"></a></dt>
+<dd><p>Sets the MQTT client instance after it has been connected.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>client</strong> (<em>umqtt.simple.MQTTClient</em>) – The connected MQTT client.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="smarthome.climate.main.main">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smarthome.climate.main.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/climate/main.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.climate.main.main" title="Link to this definition"></a></dt>
+<dd><p>The main asynchronous entry point of the application.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="smarthome.climate.main.mqtt_loop">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smarthome.climate.main.</span></span><span class="sig-name descname"><span class="pre">mqtt_loop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/climate/main.html#mqtt_loop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.climate.main.mqtt_loop" title="Link to this definition"></a></dt>
+<dd><p>Periodically checks for incoming MQTT messages.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="smarthome.climate.main.temperature_loop">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smarthome.climate.main.</span></span><span class="sig-name descname"><span class="pre">temperature_loop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manager</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/climate/main.html#temperature_loop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.climate.main.temperature_loop" title="Link to this definition"></a></dt>
+<dd><p>Periodically reads and publishes the temperature.</p>
+</dd></dl>
+
+</section>
+<section id="module-smarthome.alarm.main">
+<span id="alarm-slave"></span><h2>Alarm Slave<a class="headerlink" href="#module-smarthome.alarm.main" title="Link to this heading"></a></h2>
+<p>Main script for the ESP32 board managing the alarm system.</p>
+<p>This script is responsible for:
+- Monitoring sensor inputs (e.g., door/window contacts).
+- Handling a physical reset button.
+- Activating an indicator LED when the alarm is triggered.
+- Using interrupts for all physical inputs for efficient operation.
+- Communicating with the master board via MQTT to be armed/disarmed and to report its state.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="smarthome.alarm.main.AlarmManager">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smarthome.alarm.main.</span></span><span class="sig-name descname"><span class="pre">AlarmManager</span></span><a class="reference internal" href="_modules/smarthome/alarm/main.html#AlarmManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.alarm.main.AlarmManager" title="Link to this definition"></a></dt>
+<dd><p>Manages the state and logic of the alarm system.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.alarm.main.AlarmManager.arm_system">
+<span class="sig-name descname"><span class="pre">arm_system</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/alarm/main.html#AlarmManager.arm_system"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.alarm.main.AlarmManager.arm_system" title="Link to this definition"></a></dt>
+<dd><p>Arms the alarm system, making it ready to be triggered.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.alarm.main.AlarmManager.disarm_system">
+<span class="sig-name descname"><span class="pre">disarm_system</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/alarm/main.html#AlarmManager.disarm_system"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.alarm.main.AlarmManager.disarm_system" title="Link to this definition"></a></dt>
+<dd><p>Disarms the alarm, stopping any active trigger and preventing new ones.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.alarm.main.AlarmManager.handle_reset_press">
+<span class="sig-name descname"><span class="pre">handle_reset_press</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pin</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/alarm/main.html#AlarmManager.handle_reset_press"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.alarm.main.AlarmManager.handle_reset_press" title="Link to this definition"></a></dt>
+<dd><p>ISR for the reset button. Disarms the system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pin</strong> (<em>machine.Pin</em>) – The Pin object that triggered the interrupt.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.alarm.main.AlarmManager.handle_sensor_trigger">
+<span class="sig-name descname"><span class="pre">handle_sensor_trigger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pin</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/alarm/main.html#AlarmManager.handle_sensor_trigger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.alarm.main.AlarmManager.handle_sensor_trigger" title="Link to this definition"></a></dt>
+<dd><p>ISR for sensor pins. Triggers the alarm only if the system is armed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pin</strong> (<em>machine.Pin</em>) – The Pin object that triggered the interrupt.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.alarm.main.AlarmManager.mqtt_callback">
+<span class="sig-name descname"><span class="pre">mqtt_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/alarm/main.html#AlarmManager.mqtt_callback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.alarm.main.AlarmManager.mqtt_callback" title="Link to this definition"></a></dt>
+<dd><p>Callback for handling incoming MQTT arm/disarm commands.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topic</strong> (<em>bytes</em>) – The topic the message was received on.</p></li>
+<li><p><strong>msg</strong> (<em>bytes</em>) – The message payload.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.alarm.main.AlarmManager.set_mqtt_client">
+<span class="sig-name descname"><span class="pre">set_mqtt_client</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/alarm/main.html#AlarmManager.set_mqtt_client"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.alarm.main.AlarmManager.set_mqtt_client" title="Link to this definition"></a></dt>
+<dd><p>Sets the MQTT client instance after it has been connected.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>client</strong> (<em>umqtt.simple.MQTTClient</em>) – The connected MQTT client.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.alarm.main.AlarmManager.trigger_alarm">
+<span class="sig-name descname"><span class="pre">trigger_alarm</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/alarm/main.html#AlarmManager.trigger_alarm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.alarm.main.AlarmManager.trigger_alarm" title="Link to this definition"></a></dt>
+<dd><p>Activates the alarm trigger state.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="smarthome.alarm.main.led_blink_task">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smarthome.alarm.main.</span></span><span class="sig-name descname"><span class="pre">led_blink_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manager</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/alarm/main.html#led_blink_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.alarm.main.led_blink_task" title="Link to this definition"></a></dt>
+<dd><p>Asynchronous task to blink the LED when the alarm is triggered.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="smarthome.alarm.main.main">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smarthome.alarm.main.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/alarm/main.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.alarm.main.main" title="Link to this definition"></a></dt>
+<dd><p>The main asynchronous entry point of the application.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="smarthome.alarm.main.mqtt_loop">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smarthome.alarm.main.</span></span><span class="sig-name descname"><span class="pre">mqtt_loop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/alarm/main.html#mqtt_loop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.alarm.main.mqtt_loop" title="Link to this definition"></a></dt>
+<dd><p>Periodically checks for incoming MQTT messages.</p>
+</dd></dl>
+
+</section>
+<section id="module-smarthome.shutters.main">
+<span id="shutters-slave"></span><h2>Shutters Slave<a class="headerlink" href="#module-smarthome.shutters.main" title="Link to this heading"></a></h2>
+<p>Main script for the ESP32 board controlling the window shutters.</p>
+<p>This script is responsible for:
+- Controlling a motor to move shutters up and down.
+- Handling physical button presses for manual control.
+- Using interrupts for button handling for maximum efficiency.
+- Using asynchronous tasks to manage motor run-time without blocking.
+- Communicating with the master board via MQTT to receive commands and report state.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="smarthome.shutters.main.ShuttersManager">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smarthome.shutters.main.</span></span><span class="sig-name descname"><span class="pre">ShuttersManager</span></span><a class="reference internal" href="_modules/smarthome/shutters/main.html#ShuttersManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.shutters.main.ShuttersManager" title="Link to this definition"></a></dt>
+<dd><p>Manages the state and hardware for the window shutters.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.shutters.main.ShuttersManager.handle_button_press">
+<span class="sig-name descname"><span class="pre">handle_button_press</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pin</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/shutters/main.html#ShuttersManager.handle_button_press"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.shutters.main.ShuttersManager.handle_button_press" title="Link to this definition"></a></dt>
+<dd><p>ISR for the up/down buttons.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pin</strong> (<em>machine.Pin</em>) – The Pin object that triggered the interrupt.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.shutters.main.ShuttersManager.move_shutter">
+<span class="sig-name descname"><span class="pre">move_shutter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/shutters/main.html#ShuttersManager.move_shutter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.shutters.main.ShuttersManager.move_shutter" title="Link to this definition"></a></dt>
+<dd><p>Initiates the shutter movement by creating an asynchronous task.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>direction</strong> (<em>str</em>) – The direction to move (‘up’ or ‘down’).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.shutters.main.ShuttersManager.mqtt_callback">
+<span class="sig-name descname"><span class="pre">mqtt_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/shutters/main.html#ShuttersManager.mqtt_callback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.shutters.main.ShuttersManager.mqtt_callback" title="Link to this definition"></a></dt>
+<dd><p>Callback for handling incoming MQTT messages.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topic</strong> (<em>bytes</em>) – The topic the message was received on.</p></li>
+<li><p><strong>msg</strong> (<em>bytes</em>) – The message payload.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="smarthome.shutters.main.ShuttersManager.set_mqtt_client">
+<span class="sig-name descname"><span class="pre">set_mqtt_client</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/shutters/main.html#ShuttersManager.set_mqtt_client"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.shutters.main.ShuttersManager.set_mqtt_client" title="Link to this definition"></a></dt>
+<dd><p>Sets the MQTT client instance after it has been connected.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>client</strong> (<em>umqtt.simple.MQTTClient</em>) – The connected MQTT client.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="smarthome.shutters.main.main">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smarthome.shutters.main.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/shutters/main.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.shutters.main.main" title="Link to this definition"></a></dt>
+<dd><p>The main asynchronous entry point of the application.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="smarthome.shutters.main.mqtt_loop">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">smarthome.shutters.main.</span></span><span class="sig-name descname"><span class="pre">mqtt_loop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/smarthome/shutters/main.html#mqtt_loop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#smarthome.shutters.main.mqtt_loop" title="Link to this definition"></a></dt>
+<dd><p>Periodically checks for incoming MQTT messages.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Smart Home Project documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Alessandro Morelato, Daniel Poli, Matteo Scoropan, Seqbastiano Quaglio.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

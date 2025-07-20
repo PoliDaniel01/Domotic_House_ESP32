@@ -1,0 +1,42 @@
+Project Modules
+===============
+
+This section details all the modules within the ``smarthome`` package.
+
+Master Board
+------------
+.. automodule:: smarthome.master.main
+   :members:
+
+Common Utilities
+----------------
+.. automodule:: smarthome.common.wifi
+   :members:
+.. automodule:: smarthome.common.mqtt
+   :members:
+.. automodule:: smarthome.common.display
+   :members:
+.. automodule:: smarthome.common.html_templates
+   :members:
+.. automodule:: smarthome.common.webserver
+   :members:
+
+Lights Slave
+------------
+.. automodule:: smarthome.lights.main
+   :members:
+
+Climate Slave
+-------------
+.. automodule:: smarthome.climate.main
+   :members:
+
+Alarm Slave
+-----------
+.. automodule:: smarthome.alarm.main
+   :members:
+
+Shutters Slave
+--------------
+.. automodule:: smarthome.shutters.main
+   :members:

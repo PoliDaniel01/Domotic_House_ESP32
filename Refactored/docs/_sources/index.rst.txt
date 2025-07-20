@@ -1,0 +1,17 @@
+.. Smart Home Project documentation master file, created by
+   sphinx-quickstart on Sun Jul 20 13:00:25 2025.
+
+
+Smart Home Project documentation
+================================
+
+
+This documentation provides a detailed overview of the project's software architecture, modules, and classes.
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   modules
+
+.. automodule:: smarthome

@@ -1,0 +1,349 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>smarthome.lights.main &mdash; Smart Home Project 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Smart Home Project
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">Project Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Smart Home Project</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">smarthome.lights.main</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for smarthome.lights.main</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Main script for the ESP32 board controlling the lights.</span>
+
+<span class="sd">This script is responsible for:</span>
+<span class="sd">- Controlling multiple lights connected to its GPIO pins.</span>
+<span class="sd">- Handling physical button presses to toggle the lights.</span>
+<span class="sd">- Connecting to Wi-Fi and an MQTT broker to receive commands and report state.</span>
+<span class="sd">- Using interrupts for button handling to be more efficient than polling.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># Standard library imports</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">uasyncio</span>
+
+<span class="c1"># MicroPython-specific imports</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">machine</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pin</span>
+
+<span class="c1"># Local application/library specific imports</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">smarthome.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">wifi</span><span class="p">,</span> <span class="n">mqtt</span>
+
+<span class="c1"># ==============================</span>
+<span class="c1"># CONFIGURATION</span>
+<span class="c1"># ==============================</span>
+<span class="c1"># --- Wi-Fi Configuration ---</span>
+<span class="n">WIFI_SSID</span> <span class="o">=</span> <span class="s2">&quot;YOUR_WIFI_SSID&quot;</span>
+<span class="n">WIFI_PASS</span> <span class="o">=</span> <span class="s2">&quot;YOUR_WIFI_PASSWORD&quot;</span>
+
+<span class="c1"># --- MQTT Configuration ---</span>
+<span class="n">MQTT_BROKER</span> <span class="o">=</span> <span class="s2">&quot;YOUR_MQTT_BROKER_IP&quot;</span>
+<span class="n">MQTT_CLIENT_ID</span> <span class="o">=</span> <span class="s2">&quot;esp32-lights-slave&quot;</span>
+
+<span class="c1"># --- Hardware and Device Mapping ---</span>
+<span class="c1"># This dictionary maps a light&#39;s name to its specific configuration.</span>
+<span class="n">LIGHTS_CONFIG</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;soggiorno&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;led_pin&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;btn_pin&quot;</span><span class="p">:</span> <span class="mi">21</span><span class="p">},</span>
+    <span class="s2">&quot;cucina&quot;</span><span class="p">:</span>    <span class="p">{</span><span class="s2">&quot;led_pin&quot;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span> <span class="s2">&quot;btn_pin&quot;</span><span class="p">:</span> <span class="mi">22</span><span class="p">},</span>
+    <span class="s2">&quot;camera&quot;</span><span class="p">:</span>    <span class="p">{</span><span class="s2">&quot;led_pin&quot;</span><span class="p">:</span> <span class="mi">17</span><span class="p">,</span> <span class="s2">&quot;btn_pin&quot;</span><span class="p">:</span> <span class="mi">23</span><span class="p">},</span>
+<span class="p">}</span>
+
+<span class="c1"># --- MQTT Topic Generation ---</span>
+<span class="c1"># Automatically create the topics based on the lights&#39; names.</span>
+<span class="n">MQTT_COMMAND_TOPICS</span> <span class="o">=</span> <span class="p">{</span><span class="sa">f</span><span class="s2">&quot;home/led/</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">/command&quot;</span><span class="o">.</span><span class="n">encode</span><span class="p">():</span> <span class="n">name</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">LIGHTS_CONFIG</span><span class="p">}</span>
+<span class="n">MQTT_STATE_TOPICS</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;home/led/</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">/state&quot;</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">LIGHTS_CONFIG</span><span class="p">}</span>
+<span class="n">MQTT_SUBSCRIPTIONS</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">MQTT_COMMAND_TOPICS</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+
+<div class="viewcode-block" id="LightsManager">
+<a class="viewcode-back" href="../../../modules.html#smarthome.lights.main.LightsManager">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LightsManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Manages the state and hardware for all lights connected to this board.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the LightsManager.</span>
+
+<span class="sd">        :param config: A dictionary defining the lights and their pins.</span>
+<span class="sd">        :type config: dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">states</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="kc">False</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">config</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pins</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_irq_time</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># For debouncing all buttons</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_pins</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_setup_pins</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes GPIO pins for LEDs and buttons based on the config.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">pin_map</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">led</span> <span class="o">=</span> <span class="n">Pin</span><span class="p">(</span><span class="n">pin_map</span><span class="p">[</span><span class="s2">&quot;led_pin&quot;</span><span class="p">],</span> <span class="n">Pin</span><span class="o">.</span><span class="n">OUT</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">btn</span> <span class="o">=</span> <span class="n">Pin</span><span class="p">(</span><span class="n">pin_map</span><span class="p">[</span><span class="s2">&quot;btn_pin&quot;</span><span class="p">],</span> <span class="n">Pin</span><span class="o">.</span><span class="n">IN</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">PULL_UP</span><span class="p">)</span>
+            
+            <span class="c1"># Set up the interrupt for the button</span>
+            <span class="n">btn</span><span class="o">.</span><span class="n">irq</span><span class="p">(</span><span class="n">trigger</span><span class="o">=</span><span class="n">Pin</span><span class="o">.</span><span class="n">IRQ_FALLING</span><span class="p">,</span> <span class="n">handler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_button_press</span><span class="p">)</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">pins</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;led&quot;</span><span class="p">:</span> <span class="n">led</span><span class="p">,</span> <span class="s2">&quot;btn&quot;</span><span class="p">:</span> <span class="n">btn</span><span class="p">}</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Lights: Hardware pins initialized and interrupts attached.&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="LightsManager.set_mqtt_client">
+<a class="viewcode-back" href="../../../modules.html#smarthome.lights.main.LightsManager.set_mqtt_client">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_mqtt_client</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the MQTT client instance after it has been connected.</span>
+
+<span class="sd">        :param client: The connected MQTT client.</span>
+<span class="sd">        :type client: umqtt.simple.MQTTClient</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span> <span class="o">=</span> <span class="n">client</span></div>
+
+
+<div class="viewcode-block" id="LightsManager.set_light_state">
+<a class="viewcode-back" href="../../../modules.html#smarthome.lights.main.LightsManager.set_light_state">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_light_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">new_state</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">&quot;mqtt&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the state of a light and updates its physical LED.</span>
+
+<span class="sd">        :param name: The name of the light to change.</span>
+<span class="sd">        :type name: str</span>
+<span class="sd">        :param new_state: The new state (True for ON, False for OFF).</span>
+<span class="sd">        :type new_state: bool</span>
+<span class="sd">        :param source: The origin of the state change (&#39;mqtt&#39; or &#39;button&#39;).</span>
+<span class="sd">        :type source: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Lights Attempted to set state for unknown light: </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+            
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">!=</span> <span class="n">new_state</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_state</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pins</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;led&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="n">new_state</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Lights Light &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; turned </span><span class="si">{</span><span class="s1">&#39;ON&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">new_state</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;OFF&#39;</span><span class="si">}</span><span class="s2"> (source: </span><span class="si">{</span><span class="n">source</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">publish_state</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Lights Light &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; state is already </span><span class="si">{</span><span class="s1">&#39;ON&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">new_state</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;OFF&#39;</span><span class="si">}</span><span class="s2">. No change.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LightsManager.publish_state">
+<a class="viewcode-back" href="../../../modules.html#smarthome.lights.main.LightsManager.publish_state">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">publish_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Publishes the current state of a specific light to its MQTT state topic.</span>
+
+<span class="sd">        :param name: The name of the light whose state will be published.</span>
+<span class="sd">        :type name: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Lights: MQTT client not available. Cannot publish state.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+            
+        <span class="n">topic</span> <span class="o">=</span> <span class="n">MQTT_STATE_TOPICS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">topic</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Lights: No state topic found for light &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+            
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;ON&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">else</span> <span class="sa">b</span><span class="s2">&quot;OFF&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">retain</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;→ MQTT: Published </span><span class="si">{</span><span class="n">topic</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">msg</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Lights: MQTT publish error for </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LightsManager.publish_all_states">
+<a class="viewcode-back" href="../../../modules.html#smarthome.lights.main.LightsManager.publish_all_states">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">publish_all_states</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Publishes the current state of all lights to MQTT.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Lights: Publishing initial state for all lights...&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">publish_state</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LightsManager.mqtt_callback">
+<a class="viewcode-back" href="../../../modules.html#smarthome.lights.main.LightsManager.mqtt_callback">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mqtt_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Callback function for handling incoming MQTT messages.</span>
+
+<span class="sd">        :param topic: The topic the message was received on.</span>
+<span class="sd">        :type topic: bytes</span>
+<span class="sd">        :param msg: The message payload.</span>
+<span class="sd">        :type msg: bytes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">MQTT_COMMAND_TOPICS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">topic</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">name</span><span class="p">:</span>
+            <span class="n">new_state</span> <span class="o">=</span> <span class="p">(</span><span class="n">msg</span> <span class="o">==</span> <span class="sa">b</span><span class="s2">&quot;ON&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_light_state</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">new_state</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">&quot;mqtt&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LightsManager.handle_button_press">
+<a class="viewcode-back" href="../../../modules.html#smarthome.lights.main.LightsManager.handle_button_press">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">handle_button_press</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pin</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Interrupt Service Routine (ISR) for button presses.</span>
+<span class="sd">        </span>
+<span class="sd">        This function is called by the hardware when a button pin goes from high to low.</span>
+<span class="sd">        It includes a debounce mechanism to prevent multiple triggers from a single press.</span>
+
+<span class="sd">        :param pin: The Pin object that triggered the interrupt.</span>
+<span class="sd">        :type pin: machine.Pin</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Debounce: Ignore interrupts that occur too close to each other.</span>
+        <span class="n">current_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">ticks_ms</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">time</span><span class="o">.</span><span class="n">ticks_diff</span><span class="p">(</span><span class="n">current_time</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_irq_time</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">300</span><span class="p">:</span> <span class="c1"># 300ms debounce</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_irq_time</span> <span class="o">=</span> <span class="n">current_time</span>
+
+        <span class="c1"># Find which button was pressed</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">pin_map</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pins</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">pin_map</span><span class="p">[</span><span class="s2">&quot;btn&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">pin</span><span class="p">:</span>
+                <span class="c1"># Toggle the state</span>
+                <span class="n">new_state</span> <span class="o">=</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_light_state</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">new_state</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">&quot;button&quot;</span><span class="p">)</span>
+                <span class="k">break</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../../modules.html#smarthome.lights.main.main">[docs]</a>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The main asynchronous entry point of the application.&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># 1. Initialize manager</span>
+        <span class="n">manager</span> <span class="o">=</span> <span class="n">LightsManager</span><span class="p">(</span><span class="n">LIGHTS_CONFIG</span><span class="p">)</span>
+        
+        <span class="c1"># 2. Connect to network</span>
+        <span class="n">wifi</span><span class="o">.</span><span class="n">connect_wifi</span><span class="p">(</span><span class="n">WIFI_SSID</span><span class="p">,</span> <span class="n">WIFI_PASS</span><span class="p">)</span>
+
+        <span class="c1"># 3. Connect to MQTT</span>
+        <span class="n">mqtt_client</span> <span class="o">=</span> <span class="n">mqtt</span><span class="o">.</span><span class="n">connect_mqtt</span><span class="p">(</span>
+            <span class="n">MQTT_CLIENT_ID</span><span class="p">,</span>
+            <span class="n">MQTT_BROKER</span><span class="p">,</span>
+            <span class="n">callback</span><span class="o">=</span><span class="n">manager</span><span class="o">.</span><span class="n">mqtt_callback</span><span class="p">,</span>
+            <span class="n">subscriptions</span><span class="o">=</span><span class="n">MQTT_SUBSCRIPTIONS</span>
+        <span class="p">)</span>
+        <span class="n">manager</span><span class="o">.</span><span class="n">set_mqtt_client</span><span class="p">(</span><span class="n">mqtt_client</span><span class="p">)</span>
+        
+        <span class="c1"># 4. Publish initial states</span>
+        <span class="n">manager</span><span class="o">.</span><span class="n">publish_all_states</span><span class="p">()</span>
+        
+        <span class="c1"># 5. Keep the main loop running to check for MQTT messages</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Lights: Application running. Waiting for button presses and MQTT messages.&quot;</span><span class="p">)</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># check_msg() is blocking, but with a short sleep, it yields control</span>
+                <span class="c1"># allowing other async tasks (if any) to run. In this simple case,</span>
+                <span class="c1"># it&#39;s just to keep the connection alive and process messages.</span>
+                <span class="n">mqtt_client</span><span class="o">.</span><span class="n">check_msg</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Lights: MQTT check_msg error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">. Reconnecting...&quot;</span><span class="p">)</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+                <span class="n">machine</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+            <span class="k">await</span> <span class="n">uasyncio</span><span class="o">.</span><span class="n">sleep_ms</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Lights: A fatal error occurred: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">machine</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
+
+
+<span class="c1"># Run the application</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">uasyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+    <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Lights: Application stopped by user.&quot;</span><span class="p">)</span>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Alessandro Morelato, Daniel Poli, Matteo Scoropan, Seqbastiano Quaglio.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

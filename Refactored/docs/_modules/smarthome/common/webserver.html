@@ -1,0 +1,275 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>smarthome.common.webserver &mdash; Smart Home Project 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Smart Home Project
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">Project Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Smart Home Project</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">smarthome.common.webserver</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for smarthome.common.webserver</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Web Server class, contains code to run a web server with microdot </span>
+
+<span class="sd">Code in this file is responsible for:</span>
+<span class="sd">- Running a Microdot web server for remote control via Wi-Fi.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">microdot_asyncio</span><span class="w"> </span><span class="kn">import</span> <span class="n">Microdot</span><span class="p">,</span> <span class="n">Response</span><span class="p">,</span> <span class="n">redirect</span>
+
+<span class="c1"># Local imports</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">html_templates</span>
+
+<span class="c1"># --- Server Init ---</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">Microdot</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="WebServer">
+<a class="viewcode-back" href="../../../modules.html#smarthome.common.webserver.WebServer">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WebServer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A Microdot web server for remote control, using dynamic templating.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># We store the managers as class variables so the route functions can access them.</span>
+    <span class="n">state_manager</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">device_manager</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_manager</span><span class="p">,</span> <span class="n">device_manager</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the WebServer.</span>
+
+<span class="sd">        :param state_manager: An instance of StateManager.</span>
+<span class="sd">        :param device_manager: An instance of DeviceManager.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Assign the managers to the class variables</span>
+        <span class="n">WebServer</span><span class="o">.</span><span class="n">state_manager</span> <span class="o">=</span> <span class="n">state_manager</span>
+        <span class="n">WebServer</span><span class="o">.</span><span class="n">device_manager</span> <span class="o">=</span> <span class="n">device_manager</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_render_template</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Replaces placeholders in a template string with provided values.</span>
+
+<span class="sd">        :param template: The template string (e.g., html_templates.MAIN_TEMPLATE).</span>
+<span class="sd">        :param kwargs: Key-value pairs for replacement.</span>
+<span class="sd">        :return: The rendered HTML string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">template</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">{{{{</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="se">}}}}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">template</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_generate_content_cards</span><span class="p">():</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates the HTML for all device cards based on the current state.</span>
+
+<span class="sd">        :return: A string of HTML containing all device cards.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cards_html</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">sm</span> <span class="o">=</span> <span class="n">WebServer</span><span class="o">.</span><span class="n">state_manager</span> <span class="c1"># Shortcut</span>
+        
+        <span class="c1"># --- Climate Card ---</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="s1">&#39;current_temperature&#39;</span><span class="p">,</span> <span class="s1">&#39;--&#39;</span><span class="p">)</span>
+        <span class="n">desired_temp</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="s1">&#39;desired_temperature&#39;</span><span class="p">,</span> <span class="mf">22.0</span><span class="p">)</span>
+        <span class="n">auto_mode</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="s1">&#39;auto_mode&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">risc_on</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="s1">&#39;riscaldamento&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">aria_on</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="s1">&#39;aria_condizionata&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        
+        <span class="n">cards_html</span> <span class="o">+=</span> <span class="n">WebServer</span><span class="o">.</span><span class="n">_render_template</span><span class="p">(</span>
+            <span class="n">html_templates</span><span class="o">.</span><span class="n">CLIMATE_CARD_TEMPLATE</span><span class="p">,</span>
+            <span class="n">TEMP</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">temp</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="k">else</span> <span class="n">temp</span><span class="p">,</span>
+            <span class="n">DES_TEMP</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">desired_temp</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">AUTO_MODE</span><span class="o">=</span><span class="s2">&quot;ON&quot;</span> <span class="k">if</span> <span class="n">auto_mode</span> <span class="k">else</span> <span class="s2">&quot;OFF&quot;</span><span class="p">,</span>
+            <span class="n">AUTO_MODE_CLASS</span><span class="o">=</span><span class="s2">&quot;on&quot;</span> <span class="k">if</span> <span class="n">auto_mode</span> <span class="k">else</span> <span class="s2">&quot;off&quot;</span>
+        <span class="p">)</span>
+        
+        <span class="c1"># --- Shutter and Alarm Cards ---</span>
+        <span class="c1"># Note: We need a way to get the shutter state. Let&#39;s assume it&#39;s stored.</span>
+        <span class="n">shutter_state</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="s1">&#39;tapparella_state&#39;</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">)</span>
+        <span class="n">cards_html</span> <span class="o">+=</span> <span class="n">WebServer</span><span class="o">.</span><span class="n">_render_template</span><span class="p">(</span>
+            <span class="n">html_templates</span><span class="o">.</span><span class="n">SHUTTERS_CARD_TEMPLATE</span><span class="p">,</span> 
+            <span class="n">SHUTTER_STATE</span><span class="o">=</span><span class="n">shutter_state</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">title</span><span class="p">()</span>
+        <span class="p">)</span>
+
+        <span class="n">alarm_on</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="s1">&#39;allarme&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">cards_html</span> <span class="o">+=</span> <span class="n">WebServer</span><span class="o">.</span><span class="n">_render_template</span><span class="p">(</span>
+            <span class="n">html_templates</span><span class="o">.</span><span class="n">ALARM_CARD_TEMPLATE</span><span class="p">,</span>
+            <span class="n">ALARM_TEXT</span><span class="o">=</span><span class="s2">&quot;ATTIVO&quot;</span> <span class="k">if</span> <span class="n">alarm_on</span> <span class="k">else</span> <span class="s2">&quot;DISATTIVATO&quot;</span><span class="p">,</span>
+            <span class="n">ALARM_CLASS</span><span class="o">=</span><span class="s2">&quot;on&quot;</span> <span class="k">if</span> <span class="n">alarm_on</span> <span class="k">else</span> <span class="s2">&quot;off&quot;</span>
+        <span class="p">)</span>
+
+        <span class="c1"># --- Dynamic Light Cards ---</span>
+        <span class="n">light_devices</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;soggiorno&quot;</span><span class="p">,</span> <span class="s2">&quot;cucina&quot;</span><span class="p">,</span> <span class="s2">&quot;camera&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">device_id</span> <span class="ow">in</span> <span class="n">light_devices</span><span class="p">:</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="n">device_id</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+            <span class="n">cards_html</span> <span class="o">+=</span> <span class="n">WebServer</span><span class="o">.</span><span class="n">_render_template</span><span class="p">(</span>
+                <span class="n">html_templates</span><span class="o">.</span><span class="n">DEVICE_CARD_TEMPLATE</span><span class="p">,</span>
+                <span class="n">DEVICE_NAME</span><span class="o">=</span><span class="n">device_id</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">title</span><span class="p">(),</span>
+                <span class="n">DEVICE_ID</span><span class="o">=</span><span class="n">device_id</span><span class="p">,</span>
+                <span class="n">STATUS_TEXT</span><span class="o">=</span><span class="s2">&quot;ON&quot;</span> <span class="k">if</span> <span class="n">state</span> <span class="k">else</span> <span class="s2">&quot;OFF&quot;</span><span class="p">,</span>
+                <span class="n">STATUS_CLASS</span><span class="o">=</span><span class="s2">&quot;on&quot;</span> <span class="k">if</span> <span class="n">state</span> <span class="k">else</span> <span class="s2">&quot;off&quot;</span>
+            <span class="p">)</span>
+            
+        <span class="k">return</span> <span class="n">cards_html</span>
+        
+    <span class="c1"># --- Route Definitions ---</span>
+
+    <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">index</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Serves the main HTML page, dynamically filling it with content.&quot;&quot;&quot;</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">WebServer</span><span class="o">.</span><span class="n">_generate_content_cards</span><span class="p">()</span>
+        <span class="n">html</span> <span class="o">=</span> <span class="n">WebServer</span><span class="o">.</span><span class="n">_render_template</span><span class="p">(</span>
+            <span class="n">html_templates</span><span class="o">.</span><span class="n">MAIN_TEMPLATE</span><span class="p">,</span>
+            <span class="n">TITLE</span><span class="o">=</span><span class="s2">&quot;Smart Home Dashboard&quot;</span><span class="p">,</span>
+            <span class="n">STYLES</span><span class="o">=</span><span class="n">html_templates</span><span class="o">.</span><span class="n">STYLE_CSS</span><span class="p">,</span>
+            <span class="n">CONTENT</span><span class="o">=</span><span class="n">content</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">body</span><span class="o">=</span><span class="n">html</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s2">&quot;text/html&quot;</span><span class="p">})</span>
+
+    <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/update&quot;</span><span class="p">)</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handles requests to update a device&#39;s state (lights, alarm).&quot;&quot;&quot;</span>
+        <span class="n">device_id</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span>
+        <span class="n">state_str</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;state&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">device_id</span> <span class="ow">in</span> <span class="n">WebServer</span><span class="o">.</span><span class="n">state_manager</span><span class="o">.</span><span class="n">states</span> <span class="ow">and</span> <span class="n">state_str</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;ON&quot;</span><span class="p">,</span> <span class="s2">&quot;OFF&quot;</span><span class="p">]:</span>
+            <span class="n">new_state</span> <span class="o">=</span> <span class="p">(</span><span class="n">state_str</span> <span class="o">==</span> <span class="s2">&quot;ON&quot;</span><span class="p">)</span>
+            <span class="n">WebServer</span><span class="o">.</span><span class="n">device_manager</span><span class="o">.</span><span class="n">set_device_state</span><span class="p">(</span><span class="n">device_id</span><span class="p">,</span> <span class="n">new_state</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="s2">&quot;Invalid request&quot;</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+
+    <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/climate_control&quot;</span><span class="p">)</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">climate_control</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handles actions related to the climate control card.&quot;&quot;&quot;</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;action&quot;</span><span class="p">)</span>
+        <span class="n">sm</span> <span class="o">=</span> <span class="n">WebServer</span><span class="o">.</span><span class="n">state_manager</span>
+        <span class="n">dm</span> <span class="o">=</span> <span class="n">WebServer</span><span class="o">.</span><span class="n">device_manager</span>
+
+        <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;auto_toggle&quot;</span><span class="p">:</span>
+            <span class="n">current_auto</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="s2">&quot;auto_mode&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+            <span class="n">sm</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="s2">&quot;auto_mode&quot;</span><span class="p">,</span> <span class="ow">not</span> <span class="n">current_auto</span><span class="p">)</span>
+            <span class="n">dm</span><span class="o">.</span><span class="n">evaluate_auto_logic</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;temp_up&quot;</span><span class="p">:</span>
+            <span class="n">current_temp</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="s2">&quot;desired_temperature&quot;</span><span class="p">,</span> <span class="mf">22.0</span><span class="p">)</span>
+            <span class="n">sm</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="s2">&quot;desired_temperature&quot;</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">current_temp</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">30.0</span><span class="p">))</span>
+            <span class="n">dm</span><span class="o">.</span><span class="n">evaluate_auto_logic</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;temp_down&quot;</span><span class="p">:</span>
+            <span class="n">current_temp</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="s2">&quot;desired_temperature&quot;</span><span class="p">,</span> <span class="mf">22.0</span><span class="p">)</span>
+            <span class="n">sm</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="s2">&quot;desired_temperature&quot;</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">current_temp</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">16.0</span><span class="p">))</span>
+            <span class="n">dm</span><span class="o">.</span><span class="n">evaluate_auto_logic</span><span class="p">()</span>
+        
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+
+    <span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/shutter_control&quot;</span><span class="p">)</span>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">shutter_control</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handles actions for the shutters.&quot;&quot;&quot;</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;action&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">action</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;up&quot;</span><span class="p">,</span> <span class="s2">&quot;down&quot;</span><span class="p">]:</span>
+            <span class="n">topic</span> <span class="o">=</span> <span class="n">MQTT_COMMAND_TOPICS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tapparella&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">topic</span><span class="p">:</span>
+                <span class="n">WebServer</span><span class="o">.</span><span class="n">device_manager</span><span class="o">.</span><span class="n">mqtt_client</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">topic</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span>
+        
+        <span class="n">WebServer</span><span class="o">.</span><span class="n">display_manager</span><span class="o">.</span><span class="n">draw_page</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="WebServer.run">
+<a class="viewcode-back" href="../../../modules.html#smarthome.common.webserver.WebServer.run">[docs]</a>
+    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Starts the web server.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WebServer: Starting web server on port 80.&quot;</span><span class="p">)</span>
+        <span class="c1"># The `app` object is now global, so we can run it directly.</span>
+        <span class="k">await</span> <span class="n">app</span><span class="o">.</span><span class="n">start_server</span><span class="p">(</span><span class="n">port</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Alessandro Morelato, Daniel Poli, Matteo Scoropan, Seqbastiano Quaglio.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

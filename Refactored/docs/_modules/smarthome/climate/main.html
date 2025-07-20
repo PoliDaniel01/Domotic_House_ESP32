@@ -1,0 +1,466 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>smarthome.climate.main &mdash; Smart Home Project 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Smart Home Project
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">Project Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Smart Home Project</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">smarthome.climate.main</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for smarthome.climate.main</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Main script for the ESP32 board managing climate control.</span>
+
+<span class="sd">This script is responsible for:</span>
+<span class="sd">- Reading temperature data from a BME680 sensor.</span>
+<span class="sd">- Controlling heating and air conditioning relays.</span>
+<span class="sd">- Handling physical button presses for manual control.</span>
+<span class="sd">- Implementing an &quot;auto mode&quot; with hysteresis to maintain a desired temperature.</span>
+<span class="sd">- Communicating with the master board via MQTT for commands and state reporting.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># Standard library imports</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">uasyncio</span>
+
+<span class="c1"># MicroPython-specific imports</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">machine</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pin</span><span class="p">,</span> <span class="n">I2C</span>
+
+<span class="c1"># Third-party library imports</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">bme680</span><span class="w"> </span><span class="kn">import</span> <span class="n">BME680_I2C</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Lights: Warning: &#39;bme680&#39; library not found. Climate sensor will not work.&quot;</span><span class="p">)</span>
+    <span class="n">BME680_I2C</span> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="c1"># Local application/library specific imports</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">smarthome.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">wifi</span><span class="p">,</span> <span class="n">mqtt</span>
+
+<span class="c1"># ==============================</span>
+<span class="c1"># CONFIGURATION</span>
+<span class="c1"># ==============================</span>
+<span class="c1"># --- Wi-Fi Configuration ---</span>
+<span class="n">WIFI_SSID</span> <span class="o">=</span> <span class="s2">&quot;YOUR_WIFI_SSID&quot;</span>
+<span class="n">WIFI_PASS</span> <span class="o">=</span> <span class="s2">&quot;YOUR_WIFI_PASSWORD&quot;</span>
+
+<span class="c1"># --- MQTT Configuration ---</span>
+<span class="n">MQTT_BROKER</span> <span class="o">=</span> <span class="s2">&quot;YOUR_MQTT_BROKER_IP&quot;</span>
+<span class="n">MQTT_CLIENT_ID</span> <span class="o">=</span> <span class="s2">&quot;esp32-climate-slave&quot;</span>
+
+<span class="c1"># --- Hardware Pin Configuration ---</span>
+<span class="n">PIN_I2C_SDA</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="n">PIN_I2C_SCL</span> <span class="o">=</span> <span class="mi">9</span>
+<span class="n">PIN_RELE_RISC</span> <span class="o">=</span> <span class="mi">10</span>  <span class="c1"># Heating relay</span>
+<span class="n">PIN_RELE_COND</span> <span class="o">=</span> <span class="mi">11</span>  <span class="c1"># Air Conditioning relay</span>
+<span class="n">PIN_BTN_RISC</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">PIN_BTN_COND</span> <span class="o">=</span> <span class="mi">5</span>
+
+<span class="c1"># --- Application Settings ---</span>
+<span class="n">TEMP_PUBLISH_INTERVAL</span> <span class="o">=</span> <span class="mi">300</span>  <span class="c1"># Seconds (5 minutes)</span>
+<span class="n">HYSTERESIS_OFFSET</span> <span class="o">=</span> <span class="mf">0.5</span>      <span class="c1"># Degrees Celsius</span>
+
+<span class="c1"># --- MQTT Topics ---</span>
+<span class="n">TOPIC_RISC_CMD</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;home/led/riscaldamento/command&quot;</span>
+<span class="n">TOPIC_RISC_STATE</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;home/led/riscaldamento/state&quot;</span>
+<span class="n">TOPIC_ARIA_CMD</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;home/led/aria_condizionata/command&quot;</span>
+<span class="n">TOPIC_ARIA_STATE</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;home/led/aria_condizionata/state&quot;</span>
+<span class="n">TOPIC_TEMP_STAT</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;home/status/temperature&quot;</span>
+<span class="n">TOPIC_AUTO_MODE_CMD</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;home/auto_mode/command&quot;</span>
+<span class="n">TOPIC_DES_TEMP_CMD</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;home/desired_temperature/command&quot;</span>
+
+<span class="n">MQTT_SUBSCRIPTIONS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">TOPIC_RISC_CMD</span><span class="p">,</span>
+    <span class="n">TOPIC_ARIA_CMD</span><span class="p">,</span>
+    <span class="n">TOPIC_AUTO_MODE_CMD</span><span class="p">,</span>
+    <span class="n">TOPIC_DES_TEMP_CMD</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="ClimateManager">
+<a class="viewcode-back" href="../../../modules.html#smarthome.climate.main.ClimateManager">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ClimateManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Manages the climate control system, including sensor, relays, and logic.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes the ClimateManager.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_irq_time</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># State variables</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_risc</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_cond</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auto_mode</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">desired_temperature</span> <span class="o">=</span> <span class="mf">22.0</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_hardware</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_setup_hardware</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes all hardware components (sensor, relays, buttons).&quot;&quot;&quot;</span>
+        <span class="c1"># Relays</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rele_risc</span> <span class="o">=</span> <span class="n">Pin</span><span class="p">(</span><span class="n">PIN_RELE_RISC</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">OUT</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rele_cond</span> <span class="o">=</span> <span class="n">Pin</span><span class="p">(</span><span class="n">PIN_RELE_COND</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">OUT</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># Buttons with interrupts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btn_risc</span> <span class="o">=</span> <span class="n">Pin</span><span class="p">(</span><span class="n">PIN_BTN_RISC</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">IN</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">PULL_UP</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btn_cond</span> <span class="o">=</span> <span class="n">Pin</span><span class="p">(</span><span class="n">PIN_BTN_COND</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">IN</span><span class="p">,</span> <span class="n">Pin</span><span class="o">.</span><span class="n">PULL_UP</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btn_risc</span><span class="o">.</span><span class="n">irq</span><span class="p">(</span><span class="n">trigger</span><span class="o">=</span><span class="n">Pin</span><span class="o">.</span><span class="n">IRQ_FALLING</span><span class="p">,</span> <span class="n">handler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_button_press</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btn_cond</span><span class="o">.</span><span class="n">irq</span><span class="p">(</span><span class="n">trigger</span><span class="o">=</span><span class="n">Pin</span><span class="o">.</span><span class="n">IRQ_FALLING</span><span class="p">,</span> <span class="n">handler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">handle_button_press</span><span class="p">)</span>
+
+        <span class="c1"># BME680 Sensor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bme_sensor</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">BME680_I2C</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">i2c</span> <span class="o">=</span> <span class="n">I2C</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">sda</span><span class="o">=</span><span class="n">Pin</span><span class="p">(</span><span class="n">PIN_I2C_SDA</span><span class="p">),</span> <span class="n">scl</span><span class="o">=</span><span class="n">Pin</span><span class="p">(</span><span class="n">PIN_I2C_SCL</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">bme_sensor</span> <span class="o">=</span> <span class="n">BME680_I2C</span><span class="p">(</span><span class="n">i2c</span><span class="o">=</span><span class="n">i2c</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Climate: BME680 sensor initialized.&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Climate: Failed to initialize BME680 sensor: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Climate: BME680 library not available, continuing without sensor.&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ClimateManager.set_mqtt_client">
+<a class="viewcode-back" href="../../../modules.html#smarthome.climate.main.ClimateManager.set_mqtt_client">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_mqtt_client</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets the MQTT client instance after it has been connected.</span>
+
+<span class="sd">        :param client: The connected MQTT client.</span>
+<span class="sd">        :type client: umqtt.simple.MQTTClient</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span> <span class="o">=</span> <span class="n">client</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_publish_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generic method to publish a state to an MQTT topic.</span>
+
+<span class="sd">        :param topic: The MQTT topic to publish to.</span>
+<span class="sd">        :type topic: bytes</span>
+<span class="sd">        :param state: The state to publish (True for ON, False for OFF).</span>
+<span class="sd">        :type state: bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;ON&quot;</span> <span class="k">if</span> <span class="n">state</span> <span class="k">else</span> <span class="sa">b</span><span class="s2">&quot;OFF&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">retain</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Climate: → MQTT: Published </span><span class="si">{</span><span class="n">topic</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">msg</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Climate: MQTT publish error for </span><span class="si">{</span><span class="n">topic</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ClimateManager.set_heating">
+<a class="viewcode-back" href="../../../modules.html#smarthome.climate.main.ClimateManager.set_heating">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_heating</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_state</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">&quot;mqtt&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Controls the heating relay. Ensures AC is off if heating is turned on.</span>
+
+<span class="sd">        :param new_state: The new state for the heating (True for ON, False for OFF).</span>
+<span class="sd">        :type new_state: bool</span>
+<span class="sd">        :param source: The origin of the command (&#39;mqtt&#39;, &#39;button&#39;, &#39;auto&#39;).</span>
+<span class="sd">        :type source: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_risc</span> <span class="o">==</span> <span class="n">new_state</span><span class="p">:</span>
+            <span class="k">return</span> <span class="c1"># No change needed</span>
+
+        <span class="k">if</span> <span class="n">new_state</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_cond</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_conditioning</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">&quot;auto_override&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_risc</span> <span class="o">=</span> <span class="n">new_state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rele_risc</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="n">new_state</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Climate: Heating turned </span><span class="si">{</span><span class="s1">&#39;ON&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">new_state</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;OFF&#39;</span><span class="si">}</span><span class="s2"> (source: </span><span class="si">{</span><span class="n">source</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_publish_state</span><span class="p">(</span><span class="n">TOPIC_RISC_STATE</span><span class="p">,</span> <span class="n">new_state</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ClimateManager.set_conditioning">
+<a class="viewcode-back" href="../../../modules.html#smarthome.climate.main.ClimateManager.set_conditioning">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_conditioning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_state</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">&quot;mqtt&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Controls the AC relay. Ensures heating is off if AC is turned on.</span>
+
+<span class="sd">        :param new_state: The new state for the AC (True for ON, False for OFF).</span>
+<span class="sd">        :type new_state: bool</span>
+<span class="sd">        :param source: The origin of the command (&#39;mqtt&#39;, &#39;button&#39;, &#39;auto&#39;).</span>
+<span class="sd">        :type source: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_cond</span> <span class="o">==</span> <span class="n">new_state</span><span class="p">:</span>
+            <span class="k">return</span> <span class="c1"># No change needed</span>
+
+        <span class="k">if</span> <span class="n">new_state</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_risc</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_heating</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">&quot;auto_override&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_cond</span> <span class="o">=</span> <span class="n">new_state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rele_cond</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="n">new_state</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Climate: A/C turned </span><span class="si">{</span><span class="s1">&#39;ON&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">new_state</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;OFF&#39;</span><span class="si">}</span><span class="s2"> (source: </span><span class="si">{</span><span class="n">source</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_publish_state</span><span class="p">(</span><span class="n">TOPIC_ARIA_STATE</span><span class="p">,</span> <span class="n">new_state</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ClimateManager.read_and_publish_temperature">
+<a class="viewcode-back" href="../../../modules.html#smarthome.climate.main.ClimateManager.read_and_publish_temperature">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">read_and_publish_temperature</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reads temperature from the sensor and publishes it to MQTT.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">bme_sensor</span><span class="p">:</span>
+            <span class="k">return</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bme_sensor</span><span class="o">.</span><span class="n">temperature</span>
+            <span class="k">if</span> <span class="o">-</span><span class="mi">40</span> <span class="o">&lt;</span> <span class="n">temp</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">:</span> <span class="c1"># Sanity check</span>
+                <span class="n">payload</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">temp</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">encode</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mqtt_client</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">TOPIC_TEMP_STAT</span><span class="p">,</span> <span class="n">payload</span><span class="p">,</span> <span class="n">retain</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Climate:  Temperature published: </span><span class="si">{</span><span class="n">payload</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="si">}</span><span class="s2"> C&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">temp</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Climate: Unrealistic temperature reading: </span><span class="si">{</span><span class="n">temp</span><span class="si">}</span><span class="s2">. Ignoring.&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Climate: Error reading BME680 sensor: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="ClimateManager.evaluate_auto_logic">
+<a class="viewcode-back" href="../../../modules.html#smarthome.climate.main.ClimateManager.evaluate_auto_logic">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">evaluate_auto_logic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_temp</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Evaluates and acts on the climate auto mode logic based on temperature.</span>
+
+<span class="sd">        :param current_temp: The current temperature reading.</span>
+<span class="sd">        :type current_temp: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">auto_mode</span> <span class="ow">or</span> <span class="n">current_temp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Climate: AUTO: Evaluating. Current=</span><span class="si">{</span><span class="n">current_temp</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">C, Target=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">desired_temperature</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">C&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Hysteresis logic</span>
+        <span class="k">if</span> <span class="n">current_temp</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">desired_temperature</span> <span class="o">-</span> <span class="n">HYSTERESIS_OFFSET</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_heating</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">current_temp</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">desired_temperature</span> <span class="o">+</span> <span class="n">HYSTERESIS_OFFSET</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_conditioning</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> <span class="c1"># Temperature is within the comfort zone</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_heating</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_conditioning</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ClimateManager.mqtt_callback">
+<a class="viewcode-back" href="../../../modules.html#smarthome.climate.main.ClimateManager.mqtt_callback">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mqtt_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Callback function for handling incoming MQTT messages.</span>
+
+<span class="sd">        :param topic: The topic the message was received on.</span>
+<span class="sd">        :type topic: bytes</span>
+<span class="sd">        :param msg: The message payload.</span>
+<span class="sd">        :type msg: bytes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Climate: MQTT received: </span><span class="si">{</span><span class="n">topic</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">msg</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">topic</span> <span class="o">==</span> <span class="n">TOPIC_RISC_CMD</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">auto_mode</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_heating</span><span class="p">(</span><span class="n">msg</span> <span class="o">==</span> <span class="sa">b</span><span class="s2">&quot;ON&quot;</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">&quot;mqtt&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">topic</span> <span class="o">==</span> <span class="n">TOPIC_ARIA_CMD</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">auto_mode</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_conditioning</span><span class="p">(</span><span class="n">msg</span> <span class="o">==</span> <span class="sa">b</span><span class="s2">&quot;ON&quot;</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">&quot;mqtt&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">topic</span> <span class="o">==</span> <span class="n">TOPIC_AUTO_MODE_CMD</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">auto_mode</span> <span class="o">=</span> <span class="p">(</span><span class="n">msg</span> <span class="o">==</span> <span class="sa">b</span><span class="s2">&quot;ON&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Climate: Auto mode set to: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">auto_mode</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="c1"># Immediately evaluate logic if auto mode is turned on</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">auto_mode</span><span class="p">:</span>
+                <span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_and_publish_temperature</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">evaluate_auto_logic</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">topic</span> <span class="o">==</span> <span class="n">TOPIC_DES_TEMP_CMD</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">desired_temperature</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Climate: Desired temperature set to: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">desired_temperature</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">auto_mode</span><span class="p">:</span>
+                    <span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_and_publish_temperature</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">evaluate_auto_logic</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Climate: Invalid desired temperature value: </span><span class="si">{</span><span class="n">msg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ClimateManager.handle_button_press">
+<a class="viewcode-back" href="../../../modules.html#smarthome.climate.main.ClimateManager.handle_button_press">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">handle_button_press</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pin</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Interrupt Service Routine (ISR) for button presses.</span>
+<span class="sd">        </span>
+<span class="sd">        :param pin: The Pin object that triggered the interrupt.</span>
+<span class="sd">        :type pin: machine.Pin</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">current_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">ticks_ms</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">time</span><span class="o">.</span><span class="n">ticks_diff</span><span class="p">(</span><span class="n">current_time</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_irq_time</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">300</span><span class="p">:</span> <span class="c1"># 300ms debounce</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_irq_time</span> <span class="o">=</span> <span class="n">current_time</span>
+
+        <span class="c1"># A button press always disables auto mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auto_mode</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Climate: Button pressed, auto mode disabled.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">pin</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">btn_risc</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_heating</span><span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_risc</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">&quot;button&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">pin</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">btn_cond</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_conditioning</span><span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_cond</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">&quot;button&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ClimateManager.publish_initial_states">
+<a class="viewcode-back" href="../../../modules.html#smarthome.climate.main.ClimateManager.publish_initial_states">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">publish_initial_states</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Publishes the initial state of all controlled devices.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_publish_state</span><span class="p">(</span><span class="n">TOPIC_RISC_STATE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_risc</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_publish_state</span><span class="p">(</span><span class="n">TOPIC_ARIA_STATE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_cond</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">read_and_publish_temperature</span><span class="p">()</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="temperature_loop">
+<a class="viewcode-back" href="../../../modules.html#smarthome.climate.main.temperature_loop">[docs]</a>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">temperature_loop</span><span class="p">(</span><span class="n">manager</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Periodically reads and publishes the temperature.&quot;&quot;&quot;</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">read_and_publish_temperature</span><span class="p">()</span>
+        <span class="n">manager</span><span class="o">.</span><span class="n">evaluate_auto_logic</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">uasyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">TEMP_PUBLISH_INTERVAL</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="mqtt_loop">
+<a class="viewcode-back" href="../../../modules.html#smarthome.climate.main.mqtt_loop">[docs]</a>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">mqtt_loop</span><span class="p">(</span><span class="n">client</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Periodically checks for incoming MQTT messages.&quot;&quot;&quot;</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">client</span><span class="o">.</span><span class="n">check_msg</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Climate: MQTT check_msg error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">. Reconnecting...&quot;</span><span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+            <span class="n">machine</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="k">await</span> <span class="n">uasyncio</span><span class="o">.</span><span class="n">sleep_ms</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../../modules.html#smarthome.climate.main.main">[docs]</a>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The main asynchronous entry point of the application.&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">manager</span> <span class="o">=</span> <span class="n">ClimateManager</span><span class="p">()</span>
+        <span class="n">wifi</span><span class="o">.</span><span class="n">connect_wifi</span><span class="p">(</span><span class="n">WIFI_SSID</span><span class="p">,</span> <span class="n">WIFI_PASS</span><span class="p">)</span>
+        <span class="n">mqtt_client</span> <span class="o">=</span> <span class="n">mqtt</span><span class="o">.</span><span class="n">connect_mqtt</span><span class="p">(</span>
+            <span class="n">MQTT_CLIENT_ID</span><span class="p">,</span>
+            <span class="n">MQTT_BROKER</span><span class="p">,</span>
+            <span class="n">callback</span><span class="o">=</span><span class="n">manager</span><span class="o">.</span><span class="n">mqtt_callback</span><span class="p">,</span>
+            <span class="n">subscriptions</span><span class="o">=</span><span class="n">MQTT_SUBSCRIPTIONS</span>
+        <span class="p">)</span>
+        <span class="n">manager</span><span class="o">.</span><span class="n">set_mqtt_client</span><span class="p">(</span><span class="n">mqtt_client</span><span class="p">)</span>
+        <span class="n">manager</span><span class="o">.</span><span class="n">publish_initial_states</span><span class="p">()</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Climate: Application running. Starting tasks.&quot;</span><span class="p">)</span>
+        <span class="k">await</span> <span class="n">uasyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span>
+            <span class="n">temperature_loop</span><span class="p">(</span><span class="n">manager</span><span class="p">),</span>
+            <span class="n">mqtt_loop</span><span class="p">(</span><span class="n">mqtt_client</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Climate: A fatal error occurred in main: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">machine</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
+
+
+<span class="c1"># Run the application</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">uasyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+    <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Climate: Application stopped by user.&quot;</span><span class="p">)</span>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Alessandro Morelato, Daniel Poli, Matteo Scoropan, Seqbastiano Quaglio.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
