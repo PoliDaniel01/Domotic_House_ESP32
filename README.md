@@ -82,7 +82,8 @@ Smart_Home_ESP32/
 │  
 ├── Readme_img/                                   # Readme images  
 │   ├── ESP32.jpeg                                  # Image of ESP32 board  
-│   └── House.png                                   # Readme logo image  
+│   ├── House.png                                   # Readme logo image   
+│   └── wiring_diagram.jpg                          # Wiring diagram
 │     
 ├── Smart_Home_project/                           # Main project directory  
 │   ├── __pycache__/                                # Compiled Python cache  
@@ -205,7 +206,11 @@ Device drivers (e.g., st7789 for displays, bme680 for sensors) and utility scrip
     - Configure Wi-Fi settings using wifi_config_tool.py.
     - Wire the lights, shutters, climate control and alarm devices to the ESP32 I/O pins.
 4. Upload the project files to the ESP32 and run master.py to start the system.
-5. Access the web interface via index.html to begin controlling and monitoring your devices.  
+5. Access the web interface via index.html to begin controlling and monitoring your devices. 
+## 🔌 **Wiring Diagram**
+<p float="center">
+  <img src="Readme_img/wiring_digram.jpg" alt="msp432p401r" width="1280" height="594">
+</p>
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 
