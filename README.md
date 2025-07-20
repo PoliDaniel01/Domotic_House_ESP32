@@ -145,7 +145,13 @@ Smart_Home_ESP32/
 │       ├── mqtt_retry.py                               # MQTT retry script
 │       └── wifi_config_tool.py                         # WiFi configuration tool
 │   
-└── README.md                                   # Documentation 
+├──docs/
+│
+├──lib/
+│
+├──README.md                # Documentation 
+│
+└──boot.py                                
 ```
 <p align="right">(<a href="#top">back to top</a>)</p>
 
