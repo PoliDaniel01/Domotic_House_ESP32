@@ -183,6 +183,9 @@ Smart_Home_ESP32/
 │   ├── st7889py.py                                   # ST7789 display driver  
 │   └── xpt2046.py                                    # XPT2046 touch controller  
 │  
+├── project_video/                                  
+│   └── ESP32 - Smart Home project.mp4              #project video presentation
+│  
 ├── README.md                                       # Project documentation  
 │  
 └── boot.py                                         # MicroPython boot script  
