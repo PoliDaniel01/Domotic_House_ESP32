@@ -31,10 +31,10 @@ MQTT_BROKER = "YOUR_MQTT_BROKER_IP"
 MQTT_CLIENT_ID = "esp32-shutters-slave"
 
 # --- Hardware Pin Configuration ---
-PIN_BTN_UP = Pin(9, Pin.IN, Pin.PULL_UP)
-PIN_BTN_DOWN = Pin(8, Pin.IN, Pin.PULL_UP)
-PIN_MOTOR_UP = Pin(5, Pin.OUT)
-PIN_MOTOR_DOWN = Pin(4, Pin.OUT)
+PIN_BTN_UP = 9
+PIN_BTN_DOWN = 8
+PIN_MOTOR_UP = 5
+PIN_MOTOR_DOWN = 4
 
 # --- Application Settings ---
 MOTOR_RUN_TIME_MS = 2000  # Milliseconds to run the motor for a full open/close
