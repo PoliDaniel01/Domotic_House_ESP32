@@ -109,12 +109,12 @@ Smart_Home_ESP32/
 │   │   └── ESP32_GENERIC_S3-20250415-v1.25.0.bin       # firmware
 │   │
 │   ├──slaves/                                      # slave devices
-│   │   ├── allarm/                                     # allarm control
+│   │   ├── alarm/                                      # allarm control
 │   │   │   ├── lib/                                        # library
 │   │   │   │    └──umqtt/                                      # mqtt library
 │   │   │   │         ├── robust.py                                 # robust connection
 │   │   │   │         └── simple.py                                 # simple connection
-│   │   │   └── allarm.py                               # light script
+│   │   │   └── alarm.py                                # light script
 │   │   │
 │   │   ├── climate/                                    # climate control
 │   │   │   ├── lib/                                        # library
@@ -152,7 +152,7 @@ Smart_Home_ESP32/
 
 # 🔍 **Project Explanation**
 This project is a home automation system built using MicroPython and ESP32 microcontrollers.  
-It controls various devices such as lights, shutters, and climate settings through a network using MQTT communication.  
+It controls various devices such as lights, shutters, climate and alarm settings through a network using MQTT communication.  
 The system includes a web interface for monitoring and control, with data stored in states.json.  
 Device drivers (e.g., st7789 for displays, bme680 for sensors) and utility scripts (e.g., wifi_config_tool.py) support the functionality, making it a flexible and scalable solution for domotic application.  
 <p align="right">(<a href="#top">back to top</a>)</p>
@@ -164,7 +164,7 @@ Device drivers (e.g., st7789 for displays, bme680 for sensors) and utility scrip
 3. Set up the hardware:
     - Connect the ST7789 display and BME680 sensor to the ESP32.
     - Configure Wi-Fi settings using wifi_config_tool.py.
-    - Wire the lights, shutters, climate control and allarm devices to the ESP32 I/O pins.
+    - Wire the lights, shutters, climate control and alarm devices to the ESP32 I/O pins.
 4. Upload the project files to the ESP32 and run master.py to start the system.
 5. Access the web interface via index.html to begin controlling and monitoring your devices.  
 <p align="right">(<a href="#top">back to top</a>)</p>
