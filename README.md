@@ -86,23 +86,30 @@ Smart_Home_ESP32/
 │   └──House.png                                    # Readme logo
 │   
 ├──Smart_Home_project/                       # Project root
-│   ├──connections/                                 # networking
-│   │   ├── client.py                                   # client script
-│   │   ├── hub.py                                      # hub script
-│   │   ├── index.html                                  # web interface
-│   │   └── states.json                                 # data storage
+│   ├──__pycache__/                                 # networking
+│   │   └──__init__.cpython-312.pyc   
+│   │
+│   ├──common/                                 # networking
+│   │   ├── lib/
+│   │   │   ├── __init__.cpython-312.pyc
+│   │   │   ├── display.cpython-312.pyc
+│   │   │   ├── html_templates.cpython-312.pyc
+│   │   │   ├── mqtt.cpython-312.pyc
+│   │   │   ├── webserver.cpython-312.pyc
+│   │   │   └── wifi.cpython-312.pyc
+│   │   ├── __init__.py
+│   │   ├── display.py
+│   │   ├── html_templates.py
+│   │   ├── mqtt.py
+│   │   ├── webserver.py
+│   │   └── wifi.py
 │   │
 │   ├──master/                                      # master control
-│   │   ├── lib/                                        # library
-│   │   │   ├── screen file/                                # screen management
-│   │   │   │    └── xpt2046.py                                 # devide driver  
-│   │   │   ├── st7789/                                     # display driver
-│   │   │   │    └── st7789py.py                                    # device driver
-│   │   │   ├── umqtt/                                      # mqtt library
-│   │   │   │    ├── robust.py                                  # robust connection
-│   │   │   │    └── simple.py                                  # simple connection
-│   │   │   └── bitmap                                      # image data
-│   │   └── master.py                                   # master script
+│   │   ├── __pycache__/
+│   │   │   ├── __init__.cpython-312.pyc
+│   │   │   └── main.cpython-312.pyc
+│   │   ├── __init__.py
+│   │   └── main.py                                   # master script
 │   │   
 │   ├──micropython_utils/                           # micropython utils
 │   │   ├── ESP32_GENERIC-20250415-v1.25.0.bin          # firmware
@@ -110,44 +117,71 @@ Smart_Home_ESP32/
 │   │
 │   ├──slaves/                                      # slave devices
 │   │   ├── alarm/                                      # allarm control
-│   │   │   ├── lib/                                        # library
-│   │   │   │    └──umqtt/                                      # mqtt library
-│   │   │   │         ├── robust.py                                 # robust connection
-│   │   │   │         └── simple.py                                 # simple connection
-│   │   │   └── alarm.py                                # light script
+│   │   │   ├── __pycache__/                                        # library
+│   │   │   │    ├── __init__.cpython-312.pyc
+│   │   │   │    └── main.cpython-312.pyc          
+│   │   │   ├── __init__.py
+│   │   │   └── main.py                              # alarm script
 │   │   │
 │   │   ├── climate/                                    # climate control
-│   │   │   ├── lib/                                        # library
-│   │   │   │    ├── bme680/                                    # sensor library
-│   │   │   │    │    ├── __init__.py                               # initialization 
-│   │   │   │    │    ├── bme680.py                                 # sensor script
-│   │   │   │    │    └── constants.py                              # config
-│   │   │   │    └──umqtt/                                  # mqtt library
-│   │   │   │         ├── robust.py                             # robust connection
-│   │   │   │         └── simple.py                             # simple connection
-│   │   │   └── climate.py                              # climate script
+│   │   │   ├── __pycache__/                                        # library
+│   │   │   │    ├── __init__.cpython-312.pyc
+│   │   │   │    └── main.cpython-312.pyc          
+│   │   │   ├── __init__.py
+│   │   │   └── main.py                              # climate script
 │   │   │ 
 │   │   ├── lights/                                     # light control
-│   │   │   ├── lib/                                        # library
-│   │   │   │    └──umqtt/                                      # mqtt library
-│   │   │   │         ├── robust.py                                 # robust connection
-│   │   │   │         └── simple.py                                 # simple connection
-│   │   │   └── lights.py                               # light script
+│   │   │   ├── __pycache__/                                        # library
+│   │   │   │    ├── __init__.cpython-312.pyc
+│   │   │   │    └── main.cpython-312.pyc          
+│   │   │   ├── __init__.py
+│   │   │   └── main.py                              # lights script
 │   │   │
 │   │   └──shutters/                                    #s hutter control
-│   │       ├── lib/                                        # library
-│   │       │    └──umqtt/                                      # mqtt library
-│   │       │         ├── robust.py                                 # robust connection
-│   │       │         └── simple.py                                 # simple connection
-│   │       └── shutters.py                                 # shutter scripot
+│   │      ├── __pycache__/                                        # library
+│   │       │    ├── __init__.cpython-312.pyc
+│   │       │    └── main.cpython-312.pyc          
+│   │       ├── __init__.py
+│   │       └── main.py                              # shutters script
 │   │
-│   └──utils/                                       # utility script
-│       ├── mqtt_retry.py                               # MQTT retry script
-│       └── wifi_config_tool.py                         # WiFi configuration tool
+│   ├──utils/                                       # utility script
+│   │   ├── mqtt_retry.py                               # MQTT retry script
+│   │   └── wifi_config_tool.py                         # WiFi configuration tool
+│   │
+│   └── __init__.py
 │   
 ├──docs/
+│   ├── _modules/
+│   │   ├── smarthome/
+│   │   └── index.html
+│   │
+│   ├── _sources/
+│   │   ├── index.rst.txt
+│   │   └── modules.rst.txt
+│   │
+│   ├── _static/
+│   ├── .buildinfo
+│   ├── genindex.html
+│   ├── index.html
+│   ├── modules.html
+│   ├── objects.inv
+│   ├── py-modindex.html
+│   ├── search.html
+│   └── searchingdex.js
 │
 ├──lib/
+│   ├── bme680/
+│   │   ├── __init__.py
+│   │   ├── bme680.py
+│   │   └── constants.py
+│   ├── umqtt/
+│   │   ├── __init__.py.py
+│   │   └── simple.py
+│   │
+│   ├── bitmap
+│   ├── microdot_asyncio.py
+│   ├── st7889py.py
+│   └── xpt2046.py
 │
 ├──README.md                # Documentation 
 │
