@@ -63,6 +63,10 @@ class LightsManager:
 
         self._setup_pins()
 
+        self.button_events = {
+            name: uasyncio.Event() for name in self.pins.keys()
+        }
+
     def _setup_pins(self):
         """Initializes GPIO pins for LEDs and buttons based on the config."""
         for name, pin_map in self.config.items():
@@ -150,6 +154,14 @@ class LightsManager:
             new_state = (msg == b"ON")
             self.set_light_state(name, new_state, source="mqtt")
 
+    def _is_debounced(self, min_interval_ms=1000):
+        """Checks if the time since last interrpt is sufficient"""
+        current_time = time.ticks_ms()
+        if time.ticks_diff(current_time, self._last_irq_time) < 1000: # 1s debounce
+            return False
+        self._last_irq_time = current_time
+        return True
+
     def handle_button_press(self, pin):
         """
         Interrupt Service Routine (ISR) for button presses.
@@ -161,19 +173,46 @@ class LightsManager:
         :type pin: machine.Pin
         """
         # Debounce: Ignore interrupts that occur too close to each other.
-        current_time = time.ticks_ms()
-        if time.ticks_diff(current_time, self._last_irq_time) < 300: # 300ms debounce
-            return
-        self._last_irq_time = current_time
+        if self._is_debounced():
+            # Find which button was pressed and set the flag
+            for name, pin_map in self.pins.items():
+                if pin_map["btn"] == pin:
+                    # Toggle the state
+                    self.button_events[name].set()
+                    break
 
-        # Find which button was pressed
-        for name, pin_map in self.pins.items():
-            if pin_map["btn"] == pin:
-                # Toggle the state
-                new_state = not self.states[name]
-                self.set_light_state(name, new_state, source="button")
-                break
+async def mqtt_loop(client):
+    """Periodically checks for incoming MQTT messages."""
+    while True:
+        try:
+            client.check_msg()
+        except Exception as e:
+            print(f"Climate: MQTT check_msg error: {e}. Reconnecting...")
+            await uasyncio.sleep(5)
+            machine.reset()
+        await uasyncio.sleep_ms(200)
 
+async def button_handler_task(manager):
+    """
+    Asynchronous task to handle logic after a button press.
+
+    This task safely waits for an event from the ISR, then performs
+    the state changes and MQTT publishing.
+
+    :param manager: The instance of LightManager class.
+    """
+    while True:
+        # Efficiently check all button events
+        for name, event in manager.button_events.items():
+            if event.is_set():
+                event.clear()  # Immediately reset the flag
+
+                print(f"Handler: Button for '{name}' was pressed.")
+                new_state = not manager.states[name]
+                await manager.set_light_state(name, new_state, source="button")
+
+        # Wait a short period before checking again to yield control.
+        await uasyncio.sleep_ms(50)
 
 async def main():
     """The main asynchronous entry point of the application."""
@@ -198,21 +237,14 @@ async def main():
         
         # 5. Keep the main loop running to check for MQTT messages
         print("Lights: Application running. Waiting for button presses and MQTT messages.")
-        while True:
-            try:
-                # check_msg() is blocking, but with a short sleep, it yields control
-                # allowing other async tasks (if any) to run. In this simple case,
-                # it's just to keep the connection alive and process messages.
-                mqtt_client.check_msg()
-            except Exception as e:
-                print(f"Lights: MQTT check_msg error: {e}. Reconnecting...")
-                time.sleep(5)
-                machine.reset()
-            await uasyncio.sleep_ms(100)
-
+        
+        await uasyncio.gather(
+            mqtt_loop(mqtt_client),
+            button_handler_task(manager),
+        )
     except Exception as e:
         print(f"Lights: A fatal error occurred: {e}")
-        time.sleep(10)
+        await uasyncio.time.sleep(10)
         machine.reset()
 
 # Run the application
