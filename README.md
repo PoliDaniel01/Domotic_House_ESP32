@@ -216,7 +216,7 @@ Device drivers (e.g., st7789 for displays, bme680 for sensors) and utility scrip
 
 # 📹 **Video and Presentation**
   - Presentation [slides](https://docs.google.com/presentation/d/1vCAURBxBGKJeMjcmVpE1Y5AZ5l1dgMD1rOJj8b4t1aw/edit?usp=sharing)  
-  - Smart Home video [video](https://drive.google.com/file/d/1ewrgMpUsM_jIc1RVoieHL5TeZM0HrdUM/view?usp=sharing)
+  - Smart Home video [video](https://drive.google.com/file/d/1oFOU0-CAqg_IrYdoS4__iIDFPVXwyvxR/view?usp=sharing)
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 
