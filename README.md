@@ -77,113 +77,113 @@ To get started with this project, you will need the following hardware:
 <p align="right">(<a href="#top">back to top</a>)</p>  
  
 # 🗂️ **Project Structure**
-Smart_Home_ESP32/
-│
-├── Readme_img/                                   # Readme images
-│   ├── ESP32.jpeg                                  # Image of ESP32 board
-│   └── House.png                                   # Readme logo image
-│   
-├── Smart_Home_project/                           # Main project directory
-│   ├── __pycache__/                                # Compiled Python cache
-│   │   └── __init__.cpython-312.pyc                  # Compiled init file
-│   │
-│   ├── common/                                     # Shared utilities
-│   │   ├── lib/                                      # Common libraries
-│   │   │   ├── __init__.cpython-312.pyc                # Compiled init file
-│   │   │   ├── display.cpython-312.pyc                 # Compiled display module
-│   │   │   ├── html_templates.cpython-312.pyc          # Compiled HTML templates
-│   │   │   ├── mqtt.cpython-312.pyc                    # Compiled MQTT module
-│   │   │   ├── webserver.cpython-312.pyc               # Compiled webserver module
-│   │   │   └── wifi.cpython-312.pyc                    # Compiled WiFi module
-│   │   ├── __init__.py                               # Package initializer
-│   │   ├── display.py                                # Display control functions
-│   │   ├── html_templates.py                         # HTML templates for webserver
-│   │   ├── mqtt.py                                   # MQTT communication functions
-│   │   ├── webserver.py                              # Webserver for ESP32
-│   │   └── wifi.py                                   # WiFi connection management
-│   │
-│   ├── master/                                       # Master control scripts
-│   │   ├── __pycache__/                                # Compiled Python cache
-│   │   │   ├── __init__.cpython-312.pyc                  # Compiled init file
-│   │   │   └── main.cpython-312.pyc                      # Compiled main script
-│   │   ├── __init__.py                                 # Package initializer
-│   │   └── main.py                                     # Main master control script
-│   │   
-│   ├── micropython_utils/                            # MicroPython utilities
-│   │   ├── ESP32_GENERIC-20250415-v1.25.0.bin          # ESP32 firmware
-│   │   └── ESP32_GENERIC_S3-20250415-v1.25.0.bin       # ESP32-S3 firmware
-│   │
-│   ├── slaves/                                       # Slave device scripts
-│   │   ├── alarm/                                      # Alarm control
-│   │   │   ├── __pycache__/                              # Compiled Python cache
-│   │   │   │    ├── __init__.cpython-312.pyc               # Compiled init file
-│   │   │   │    └── main.cpython-312.pyc                   # Compiled alarm script
-│   │   │   ├── __init__.py                               # Package initializer
-│   │   │   └── main.py                                   # Alarm control script
-│   │   │
-│   │   ├── climate/                                  # Climate control
-│   │   │   ├── __pycache__/                            # Compiled Python cache
-│   │   │   │    ├── __init__.cpython-312.pyc             # Compiled init file
-│   │   │   │    └── main.cpython-312.pyc                 # Compiled climate script
-│   │   │   ├── __init__.py                             # Package initializer
-│   │   │   └── main.py                                 # Climate control script
-│   │   │ 
-│   │   ├── lights/                                   # Light control
-│   │   │   ├── __pycache__/                            # Compiled Python cache
-│   │   │   │    ├── __init__.cpython-312.pyc             # Compiled init file
-│   │   │   │    └── main.cpython-312.pyc                 # Compiled lights script
-│   │   │   ├── __init__.py                             # Package initializer
-│   │   │   └── main.py                                 # Light control script
-│   │   │
-│   │   └── shutters/                                 # Shutter control
-│   │       ├── __pycache__/                            # Compiled Python cache
-│   │       │    ├── __init__.cpython-312.pyc             # Compiled init file
-│   │       │    └── main.cpython-312.pyc                 # Compiled shutters script
-│   │       ├── __init__.py                             # Package initializer
-│   │       └── main.py                                 # Shutter control script
-│   │
-│   ├── utils/                                      # Utility scripts
-│   │   ├── mqtt_retry.py                             # MQTT reconnection logic
-│   │   └── wifi_config_tool.py                       # WiFi configuration utility
-│   │
-│   └── __init__.py                                 # Project package initializer
-│   
-├── docs/                                           # Documentation files
-│   ├── _modules/                                     # Module documentation
-│   │   ├── smarthome/                                  # Smart home module docs
-│   │   └── index.html                                  # Documentation index
-│   │
-│   ├── _sources/                                     # Documentation source files
-│   │   ├── index.rst.txt                               # Main documentation source
-│   │   └── modules.rst.txt                             # Modules documentation source
-│   │
-│   ├── _static/                                      # Static documentation assets
-│   ├── .buildinfo                                    # Documentation build info
-│   ├── genindex.html                                 # General index page
-│   ├── index.html                                    # Main documentation page
-│   ├── modules.html                                  # Modules documentation page
-│   ├── objects.inv                                   # Documentation objects inventory
-│   ├── py-modindex.html                              # Python module index
-│   ├── search.html                                   # Search page for docs
-│   └── searchindex.js                                # Search index script
-│
-├── lib/                                            # External libraries
-│   ├── bme680/                                       # BME680 sensor library
-│   │   ├── __init__.py                                 # Package initializer
-│   │   ├── bme680.py                                   # BME680 sensor functions
-│   │   └── constants.py                                # BME680 sensor constants
-│   ├── umqtt/                                        # MQTT library
-│   │   ├── __init__.py.py                              # Package initializer
-│   │   └── simple.py                                   # Simple MQTT client
-│   │
-│   ├── bitmap                                        # Bitmap handling library
-│   ├── microdot_asyncio.py                           # Microdot web framework
-│   ├── st7889py.py                                   # ST7789 display driver
-│   └── xpt2046.py                                    # XPT2046 touch controller
-│
-├── README.md                                       # Project documentation
-│
-└── boot.py                                         # MicroPython boot script
+Smart_Home_ESP32/  
+│  
+├── Readme_img/                                   # Readme images  
+│   ├── ESP32.jpeg                                  # Image of ESP32 board  
+│   └── House.png                                   # Readme logo image  
+│     
+├── Smart_Home_project/                           # Main project directory  
+│   ├── __pycache__/                                # Compiled Python cache  
+│   │   └── __init__.cpython-312.pyc                  # Compiled init file  
+│   │  
+│   ├── common/                                     # Shared utilities  
+│   │   ├── lib/                                      # Common libraries  
+│   │   │   ├── __init__.cpython-312.pyc                # Compiled init file  
+│   │   │   ├── display.cpython-312.pyc                 # Compiled display module  
+│   │   │   ├── html_templates.cpython-312.pyc          # Compiled HTML templates  
+│   │   │   ├── mqtt.cpython-312.pyc                    # Compiled MQTT module  
+│   │   │   ├── webserver.cpython-312.pyc               # Compiled webserver module  
+│   │   │   └── wifi.cpython-312.pyc                    # Compiled WiFi module  
+│   │   ├── __init__.py                               # Package initializer  
+│   │   ├── display.py                                # Display control functions  
+│   │   ├── html_templates.py                         # HTML templates for webserver  
+│   │   ├── mqtt.py                                   # MQTT communication functions  
+│   │   ├── webserver.py                              # Webserver for ESP32  
+│   │   └── wifi.py                                   # WiFi connection management  
+│   │  
+│   ├── master/                                       # Master control scripts  
+│   │   ├── __pycache__/                                # Compiled Python cache  
+│   │   │   ├── __init__.cpython-312.pyc                  # Compiled init file  
+│   │   │   └── main.cpython-312.pyc                      # Compiled main script  
+│   │   ├── __init__.py                                 # Package initializer  
+│   │   └── main.py                                     # Main master control script  
+│   │     
+│   ├── micropython_utils/                            # MicroPython utilities  
+│   │   ├── ESP32_GENERIC-20250415-v1.25.0.bin          # ESP32 firmware  
+│   │   └── ESP32_GENERIC_S3-20250415-v1.25.0.bin       # ESP32-S3 firmware  
+│   │  
+│   ├── slaves/                                       # Slave device scripts  
+│   │   ├── alarm/                                      # Alarm control  
+│   │   │   ├── __pycache__/                              # Compiled Python cache  
+│   │   │   │    ├── __init__.cpython-312.pyc               # Compiled init file  
+│   │   │   │    └── main.cpython-312.pyc                   # Compiled alarm script  
+│   │   │   ├── __init__.py                               # Package initializer  
+│   │   │   └── main.py                                   # Alarm control script  
+│   │   │  
+│   │   ├── climate/                                  # Climate control  
+│   │   │   ├── __pycache__/                            # Compiled Python cache  
+│   │   │   │    ├── __init__.cpython-312.pyc             # Compiled init file  
+│   │   │   │    └── main.cpython-312.pyc                 # Compiled climate script  
+│   │   │   ├── __init__.py                             # Package initializer  
+│   │   │   └── main.py                                 # Climate control script  
+│   │   │   
+│   │   ├── lights/                                   # Light control  
+│   │   │   ├── __pycache__/                            # Compiled Python cache  
+│   │   │   │    ├── __init__.cpython-312.pyc             # Compiled init file  
+│   │   │   │    └── main.cpython-312.pyc                 # Compiled lights script  
+│   │   │   ├── __init__.py                             # Package initializer  
+│   │   │   └── main.py                                 # Light control script  
+│   │   │  
+│   │   └── shutters/                                 # Shutter control  
+│   │       ├── __pycache__/                            # Compiled Python cache  
+│   │       │    ├── __init__.cpython-312.pyc             # Compiled init file  
+│   │       │    └── main.cpython-312.pyc                 # Compiled shutters script  
+│   │       ├── __init__.py                             # Package initializer  
+│   │       └── main.py                                 # Shutter control script  
+│   │  
+│   ├── utils/                                      # Utility scripts  
+│   │   ├── mqtt_retry.py                             # MQTT reconnection logic  
+│   │   └── wifi_config_tool.py                       # WiFi configuration utility  
+│   │  
+│   └── __init__.py                                 # Project package initializer  
+│     
+├── docs/                                           # Documentation files  
+│   ├── _modules/                                     # Module documentation  
+│   │   ├── smarthome/                                  # Smart home module docs  
+│   │   └── index.html                                  # Documentation index  
+│   │  
+│   ├── _sources/                                     # Documentation source files  
+│   │   ├── index.rst.txt                               # Main documentation source  
+│   │   └── modules.rst.txt                             # Modules documentation source  
+│   │  
+│   ├── _static/                                      # Static documentation assets  
+│   ├── .buildinfo                                    # Documentation build info  
+│   ├── genindex.html                                 # General index page  
+│   ├── index.html                                    # Main documentation page  
+│   ├── modules.html                                  # Modules documentation page  
+│   ├── objects.inv                                   # Documentation objects inventory  
+│   ├── py-modindex.html                              # Python module index  
+│   ├── search.html                                   # Search page for docs  
+│   └── searchindex.js                                # Search index script  
+│  
+├── lib/                                            # External libraries  
+│   ├── bme680/                                       # BME680 sensor library  
+│   │   ├── __init__.py                                 # Package initializer  
+│   │   ├── bme680.py                                   # BME680 sensor functions  
+│   │   └── constants.py                                # BME680 sensor constants  
+│   ├── umqtt/                                        # MQTT library  
+│   │   ├── __init__.py.py                              # Package initializer  
+│   │   └── simple.py                                   # Simple MQTT client  
+│   │  
+│   ├── bitmap                                        # Bitmap handling library  
+│   ├── microdot_asyncio.py                           # Microdot web framework  
+│   ├── st7889py.py                                   # ST7789 display driver  
+│   └── xpt2046.py                                    # XPT2046 touch controller  
+│  
+├── README.md                                       # Project documentation  
+│  
+└── boot.py                                         # MicroPython boot script  
 ```
 <p align="right">(<a href="#top">back to top</a>)</p>
 
