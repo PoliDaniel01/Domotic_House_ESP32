@@ -209,7 +209,7 @@ Device drivers (e.g., st7789 for displays, bme680 for sensors) and utility scrip
 5. Access the web interface via index.html to begin controlling and monitoring your devices. 
 ## 🔌 **Wiring Diagram**
 <p float="center">
-  <img src="Readme_img/wiring_digram.jpg" alt="msp432p401r" width="1280" height="594">
+  <img src="Readme_img/wiring_diagram.jpg" alt="msp432p401r" width="1280" height="594">
 </p>
 <p align="right">(<a href="#top">back to top</a>)</p>
 
