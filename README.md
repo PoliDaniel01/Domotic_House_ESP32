@@ -77,6 +77,7 @@ To get started with this project, you will need the following hardware:
 <p align="right">(<a href="#top">back to top</a>)</p>  
  
 # 🗂️ **Project Structure**
+```
 Smart_Home_ESP32/  
 │  
 ├── Readme_img/                                   # Readme images  
