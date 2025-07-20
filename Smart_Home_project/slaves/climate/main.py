@@ -83,6 +83,9 @@ class ClimateManager:
         
         self._setup_hardware()
 
+        self.risc_button_event = uasyncio.Event()
+        self.cond_button_event = uasyncio.Event()
+
     def _setup_hardware(self):
         """Initializes all hardware components (sensor, relays, buttons)."""
         # Relays
@@ -247,6 +250,14 @@ class ClimateManager:
             except (ValueError, TypeError):
                 print(f"Climate: Invalid desired temperature value: {msg}")
 
+    def _is_debounced(self, min_interval_ms=1000):
+        """Checks if the time since last interrpt is sufficient"""
+        current_time = time.ticks_ms()
+        if time.ticks_diff(current_time, self._last_irq_time) < 1000: # 1s debounce
+            return False
+        self._last_irq_time = current_time
+        return True
+
     def handle_button_press(self, pin):
         """
         Interrupt Service Routine (ISR) for button presses.
@@ -254,19 +265,11 @@ class ClimateManager:
         :param pin: The Pin object that triggered the interrupt.
         :type pin: machine.Pin
         """
-        current_time = time.ticks_ms()
-        if time.ticks_diff(current_time, self._last_irq_time) < 300: # 300ms debounce
-            return
-        self._last_irq_time = current_time
-
-        # A button press always disables auto mode
-        self.auto_mode = False
-        print("Climate: Button pressed, auto mode disabled.")
-
-        if pin == self.btn_risc:
-            self.set_heating(not self.state_risc, source="button")
-        elif pin == self.btn_cond:
-            self.set_conditioning(not self.state_cond, source="button")
+        if self._is_debounced():
+            if pin == self.btn_risc:
+                self.risc_button_event.set() # Set event for heating button
+            elif pin == self.btn_cond:
+                self.cond_button_event.set() # Set event for A/C button
 
     def publish_initial_states(self):
         """Publishes the initial state of all controlled devices."""
@@ -290,10 +293,27 @@ async def mqtt_loop(client):
             client.check_msg()
         except Exception as e:
             print(f"Climate: MQTT check_msg error: {e}. Reconnecting...")
-            time.sleep(5)
+            await uasyncio.sleep(5)
             machine.reset()
         await uasyncio.sleep_ms(200)
 
+async def button_handler_task(manager):
+    while True:
+        # Check if the heating button event was set
+        if manager.risc_button_event.is_set():
+            manager.risc_button_event.clear() # Clear the event immediately
+            print("Climate: Button pressed, auto mode disabled.")
+            manager.auto_mode = False
+            manager.set_heating(not manager.state_risc, source="button")
+
+        # Check if the A/C button event was set
+        if manager.cond_button_event.is_set():
+            manager.cond_button_event.clear()
+            print("Climate: Button pressed, auto mode disabled.")
+            manager.auto_mode = False
+            manager.set_conditioning(not manager.state_cond, source="button")
+
+        await uasyncio.sleep_ms(50) # Poll for events efficiently
 
 async def main():
     """The main asynchronous entry point of the application."""
@@ -313,11 +333,12 @@ async def main():
         await uasyncio.gather(
             temperature_loop(manager),
             mqtt_loop(mqtt_client),
+            button_handler_task(manager),
         )
 
     except Exception as e:
         print(f"Climate: A fatal error occurred in main: {e}")
-        time.sleep(10)
+        await uasyncio.sleep(10)
         machine.reset()
 
 # Run the application
