@@ -175,7 +175,7 @@ Smart_Home_ESP32/
 │   │   ├── bme680.py                                   # BME680 sensor functions  
 │   │   └── constants.py                                # BME680 sensor constants  
 │   ├── umqtt/                                        # MQTT library  
-│   │   ├── __init__.py.py                              # Package initializer  
+│   │   ├── __init__.py                                 # Package initializer  
 │   │   └── simple.py                                   # Simple MQTT client  
 │   │  
 │   ├── bitmap                                        # Bitmap handling library  
